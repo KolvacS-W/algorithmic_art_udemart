@@ -84,6 +84,22 @@ function setup() {
   // Define polygon types for each segment
   let polygonTypes = ["triangle", "square", "hexagon", "diamond"];
 
+  // Define different goodsize and goodensity for each segment
+  let goodsizes = [
+    random(30, 90), // Segment 1
+    random(20, 80), // Segment 2
+    random(50, 90), // Segment 3
+    random(35, 85), // Segment 4
+  ];
+
+  let densityreduce = 0.4;
+  let goodensities = [
+    random(1.7, 2.3) - densityreduce, // Segment 1 density multiplier
+    random(1.8, 2.2) - densityreduce, // Segment 2 density multiplier
+    random(1.6, 2.4) - densityreduce, // Segment 3 density multiplier
+    random(1.9, 2.1) - densityreduce, // Segment 4 density multiplier
+  ];
+
   // For each corner, find its 2 closest edge points and draw the segment
   for (let i = 0; i < 4; i++) {
     // Find the 2 edge points closest to this corner
@@ -105,6 +121,8 @@ function setup() {
         polygonTypes[i],
         beverageColorset,
         angle1,
+        goodsizes[i],
+        goodensities[i],
       );
     }
   }
@@ -162,9 +180,15 @@ function fillSegmentWithPolygons(
   polygonType,
   colorset,
   gridAngle,
+  goodSize,
+  goodensity,
 ) {
   // Fill a segment with a grid of polygons aligned with the lines
-  let goodSize = 70; // Base distance between polygon centers
+  // goodSize: base distance between polygon centers
+  // goodensity: density multiplier (higher = denser grid, more polygons)
+
+  // Apply density to grid spacing (inverse relationship: higher density = smaller spacing)
+  let effectiveGridSize = goodSize / goodensity;
 
   // Find bounding box of the segment
   let minX = min(segmentVertices.map((v) => v.x));
@@ -184,19 +208,21 @@ function fillSegmentWithPolygons(
 
   // Determine how many grid steps we need in each direction
   let maxDist = max(maxX - minX, maxY - minY) * 1.5;
-  let steps = ceil(maxDist / goodSize);
+  let steps = ceil(maxDist / effectiveGridSize);
 
   // Create rotated grid of polygons
   for (let i = -steps; i <= steps; i++) {
     for (let j = -steps; j <= steps; j++) {
       // Calculate position in rotated grid
-      let x = centerX + i * goodSize * dx1 + j * goodSize * dx2;
-      let y = centerY + i * goodSize * dy1 + j * goodSize * dy2;
+      let x =
+        centerX + i * effectiveGridSize * dx1 + j * effectiveGridSize * dx2;
+      let y =
+        centerY + i * effectiveGridSize * dy1 + j * effectiveGridSize * dy2;
 
       // Check if this point is inside the segment
       if (pointInPolygon(x, y, segmentVertices)) {
         // Randomize polygon size within [goodSize*0.8, goodSize*1.2]
-        let randomSize = random(goodSize * 0.8, goodSize * 1.2) * 0.4;
+        let randomSize = random(goodSize * 0.6, goodSize * 1.7) * 0.4;
 
         // Randomly sample a color from the colorset
         let randomColor = random(colorset);
