@@ -125,7 +125,7 @@ function setup() {
   let pepcircle2 = {
     x: pepcircle1.x + cos(angleFromPepcircle1) * distFromPepcircle1,
     y: pepcircle1.y + sin(angleFromPepcircle1) * distFromPepcircle1,
-    radius: random(10, pepcircle1.radius)
+    radius: random(pepcircle1.radius * 0.5, pepcircle1.radius)
   };
 
   // Draw pepcircle2
