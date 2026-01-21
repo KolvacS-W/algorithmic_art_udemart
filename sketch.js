@@ -2,36 +2,49 @@ function setup() {
   createCanvas(600, 600);
   background(240);
 
-  // Pick a random center point where the two lines intersect
-  let cx = random(150, width - 150);
-  let cy = random(150, height - 150);
+  // Step 1: Pick first line connecting two opposite edges
+  let line1 = {};
+  let line1Vertical = random() < 0.5;
 
-  // Try to find valid perpendicular lines that connect opposite edges
-  let line1, line2, angle1, angle2;
-  let maxAttempts = 100;
-  let attempt = 0;
-
-  while (attempt < maxAttempts) {
-    // Pick a random angle for the first line
-    angle1 = random(TWO_PI);
-
-    // Second line is perpendicular (90 degrees)
-    angle2 = angle1 + HALF_PI;
-
-    // Find where each line hits the canvas edges
-    line1 = findEdgePoints(cx, cy, angle1);
-    line2 = findEdgePoints(cx, cy, angle2);
-
-    // Check if both lines connect opposite edges (not adjacent)
-    let line1Valid = connectsOppositeEdges(line1);
-    let line2Valid = connectsOppositeEdges(line2);
-
-    if (line1Valid && line2Valid) {
-      break;  // Found valid lines!
-    }
-
-    attempt++;
+  if (line1Vertical) {
+    // Line 1 connects top-bottom
+    line1.x1 = random(100, width - 100);
+    line1.y1 = 0;
+    line1.x2 = random(100, width - 100);
+    line1.y2 = height;
+  } else {
+    // Line 1 connects left-right
+    line1.x1 = 0;
+    line1.y1 = random(100, height - 100);
+    line1.x2 = width;
+    line1.y2 = random(100, height - 100);
   }
+
+  // Step 2: Find a perpendicular line that connects the other two opposite edges
+  let line2 = {};
+  let angle1 = atan2(line1.y2 - line1.y1, line1.x2 - line1.x1);
+  let angle2 = angle1 + HALF_PI;
+  let maxAttempts = 100;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    // Pick a random point on line1
+    let t = random(0.2, 0.8);  // Stay away from edges
+    let px = line1.x1 + t * (line1.x2 - line1.x1);
+    let py = line1.y1 + t * (line1.y2 - line1.y1);
+
+    // Find where perpendicular line hits canvas edges
+    line2 = findEdgePoints(px, py, angle2);
+
+    // Check if line2 connects the other two opposite edges
+    if (connectsOppositeEdges(line2) && !connectsSameEdges(line1, line2)) {
+      break;
+    }
+  }
+
+  // Use the intersection point as center
+  let intersection = findLineIntersection(line1, line2);
+  let cx = intersection.x;
+  let cy = intersection.y;
 
   // Collect all 4 edge points where lines hit the canvas
   let edgePoints = [
@@ -75,8 +88,8 @@ function setup() {
         closestPoints[1]
       ];
 
-      // Fill segment with grid of polygons
-      fillSegmentWithPolygons(segmentVertices, polygonTypes[i], colors[i]);
+      // Fill segment with grid of polygons aligned with the lines
+      fillSegmentWithPolygons(segmentVertices, polygonTypes[i], colors[i], angle1);
     }
   }
 
@@ -87,8 +100,8 @@ function setup() {
   line(line2.x1, line2.y1, line2.x2, line2.y2);
 }
 
-function fillSegmentWithPolygons(segmentVertices, polygonType, color) {
-  // Fill a segment with a grid of polygons
+function fillSegmentWithPolygons(segmentVertices, polygonType, color, gridAngle) {
+  // Fill a segment with a grid of polygons aligned with the lines
   let gridSize = 30; // Distance between polygon centers
 
   // Find bounding box of the segment
@@ -97,20 +110,42 @@ function fillSegmentWithPolygons(segmentVertices, polygonType, color) {
   let minY = min(segmentVertices.map(v => v.y));
   let maxY = max(segmentVertices.map(v => v.y));
 
-  // Create grid of polygons
-  for (let x = minX; x <= maxX; x += gridSize) {
-    for (let y = minY; y <= maxY; y += gridSize) {
+  // Calculate grid directions (aligned with the lines)
+  let dx1 = cos(gridAngle);
+  let dy1 = sin(gridAngle);
+  let dx2 = cos(gridAngle + HALF_PI);
+  let dy2 = sin(gridAngle + HALF_PI);
+
+  // Find center of segment for grid origin
+  let centerX = (minX + maxX) / 2;
+  let centerY = (minY + maxY) / 2;
+
+  // Determine how many grid steps we need in each direction
+  let maxDist = max(maxX - minX, maxY - minY) * 1.5;
+  let steps = ceil(maxDist / gridSize);
+
+  // Create rotated grid of polygons
+  for (let i = -steps; i <= steps; i++) {
+    for (let j = -steps; j <= steps; j++) {
+      // Calculate position in rotated grid
+      let x = centerX + i * gridSize * dx1 + j * gridSize * dx2;
+      let y = centerY + i * gridSize * dy1 + j * gridSize * dy2;
+
       // Check if this point is inside the segment
       if (pointInPolygon(x, y, segmentVertices)) {
-        // Draw polygon at this position
-        drawPolygon(x, y, polygonType, color, gridSize * 0.4);
+        // Draw polygon at this position with rotation
+        drawPolygon(x, y, polygonType, color, gridSize * 0.4, gridAngle);
       }
     }
   }
 }
 
-function drawPolygon(x, y, type, color, size) {
-  // Draw different types of polygons
+function drawPolygon(x, y, type, color, size, rotation) {
+  // Draw different types of polygons with rotation
+  push();
+  translate(x, y);
+  rotate(rotation);
+
   fill(color[0], color[1], color[2]);
   stroke(255);
   strokeWeight(1);
@@ -118,30 +153,32 @@ function drawPolygon(x, y, type, color, size) {
   if (type === 'triangle') {
     // Equilateral triangle
     let h = size * sqrt(3) / 2;
-    triangle(x, y - size * 0.6, x - size * 0.5, y + h * 0.4, x + size * 0.5, y + h * 0.4);
+    triangle(0, -size * 0.6, -size * 0.5, h * 0.4, size * 0.5, h * 0.4);
   } else if (type === 'square') {
     // Square
     rectMode(CENTER);
-    square(x, y, size);
+    square(0, 0, size);
   } else if (type === 'hexagon') {
     // Hexagon
     beginShape();
     for (let i = 0; i < 6; i++) {
       let angle = TWO_PI / 6 * i - HALF_PI;
-      let px = x + cos(angle) * size * 0.5;
-      let py = y + sin(angle) * size * 0.5;
+      let px = cos(angle) * size * 0.5;
+      let py = sin(angle) * size * 0.5;
       vertex(px, py);
     }
     endShape(CLOSE);
   } else if (type === 'diamond') {
     // Diamond (rhombus)
     beginShape();
-    vertex(x, y - size * 0.5);
-    vertex(x + size * 0.4, y);
-    vertex(x, y + size * 0.5);
-    vertex(x - size * 0.4, y);
+    vertex(0, -size * 0.5);
+    vertex(size * 0.4, 0);
+    vertex(0, size * 0.5);
+    vertex(-size * 0.4, 0);
     endShape(CLOSE);
   }
+
+  pop();
 }
 
 function pointInPolygon(px, py, vertices) {
@@ -193,6 +230,44 @@ function connectsOppositeEdges(line) {
   }
 
   return false;  // Adjacent edges
+}
+
+function connectsSameEdges(line1, line2) {
+  // Check if two lines share any edge
+  let edges1 = [getEdge(line1.x1, line1.y1), getEdge(line1.x2, line1.y2)];
+  let edges2 = [getEdge(line2.x1, line2.y1), getEdge(line2.x2, line2.y2)];
+
+  // Check if any edge is shared
+  for (let e1 of edges1) {
+    for (let e2 of edges2) {
+      if (e1 === e2) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function findLineIntersection(line1, line2) {
+  // Find intersection point of two lines
+  let x1 = line1.x1, y1 = line1.y1;
+  let x2 = line1.x2, y2 = line1.y2;
+  let x3 = line2.x1, y3 = line2.y1;
+  let x4 = line2.x2, y4 = line2.y2;
+
+  let denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+
+  if (abs(denom) < 0.001) {
+    // Lines are parallel, return midpoint
+    return {x: width / 2, y: height / 2};
+  }
+
+  let t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom;
+
+  return {
+    x: x1 + t * (x2 - x1),
+    y: y1 + t * (y2 - y1)
+  };
 }
 
 function getEdge(x, y) {
