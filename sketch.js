@@ -169,7 +169,8 @@ function setup() {
   drawCircleIntersection(pepcircle1, pepcircle2);
 
   // Draw the 2 perpendicular lines on top
-  stroke(60, 90, 180);
+  // stroke(60, 90, 180);
+  noStroke();
   strokeWeight(4);
   line(line1.x1, line1.y1, line1.x2, line1.y2);
   line(line2.x1, line2.y1, line2.x2, line2.y2);
@@ -241,7 +242,8 @@ function drawPolygon(x, y, type, color, size, rotation) {
   rotate(rotation);
 
   fill(color[0], color[1], color[2]);
-  stroke(255);
+  // stroke(255);
+  noStroke();
   strokeWeight(1);
 
   if (type === "triangle") {
