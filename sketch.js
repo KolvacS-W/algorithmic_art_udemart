@@ -41,10 +41,11 @@ function setup() {
     }
   }
 
-  // Use the intersection point as center
+  // Use the intersection point as center (the "heart")
   let intersection = findLineIntersection(line1, line2);
   let cx = intersection.x;
   let cy = intersection.y;
+  let heart = {x: cx, y: cy};
 
   // Collect all 4 edge points where lines hit the canvas
   let edgePoints = [
@@ -92,6 +93,46 @@ function setup() {
       fillSegmentWithPolygons(segmentVertices, polygonTypes[i], colors[i], angle1);
     }
   }
+
+  // Draw pepcircle1 around the heart
+  // Circle center is randomly placed within a distance range from heart
+  let minDistFromHeart = 20;
+  let maxDistFromHeart = 80;
+  let distFromHeart = random(minDistFromHeart, maxDistFromHeart);
+  let angleFromHeart = random(TWO_PI);
+
+  let pepcircle1 = {
+    x: heart.x + cos(angleFromHeart) * distFromHeart,
+    y: heart.y + sin(angleFromHeart) * distFromHeart,
+    radius: 0
+  };
+
+  // Radius must be larger than distance from circle center to heart
+  let minRadius = distFromHeart;
+  pepcircle1.radius = random(minRadius + 10, minRadius + 60);
+
+  // Draw pepcircle1
+  noFill();
+  stroke(60, 90, 180);
+  strokeWeight(3);
+  circle(pepcircle1.x, pepcircle1.y, pepcircle1.radius * 2);
+
+  // Create pepcircle2
+  // Sample a point at distance [pepcircle1.radius, pepcircle1.radius * 1.5] from pepcircle1
+  let distFromPepcircle1 = random(pepcircle1.radius, pepcircle1.radius * 1.5);
+  let angleFromPepcircle1 = random(TWO_PI);
+
+  let pepcircle2 = {
+    x: pepcircle1.x + cos(angleFromPepcircle1) * distFromPepcircle1,
+    y: pepcircle1.y + sin(angleFromPepcircle1) * distFromPepcircle1,
+    radius: random(10, pepcircle1.radius)
+  };
+
+  // Draw pepcircle2
+  noFill();
+  stroke(60, 90, 180);
+  strokeWeight(3);
+  circle(pepcircle2.x, pepcircle2.y, pepcircle2.radius * 2);
 
   // Draw the 2 perpendicular lines on top
   stroke(60, 90, 180);
