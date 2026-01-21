@@ -1,6 +1,19 @@
+// GLOBAL CONTROL: Set to true to use p5.brush watercolor effects, false for original rendering
+const USE_BRUSH = true;
+
 function setup() {
-  createCanvas(600, 600);
-  background(40); // Blackchalk color
+  // Create canvas - WEBGL mode required for p5.brush
+  if (USE_BRUSH && typeof brush !== "undefined") {
+    createCanvas(600, 600, WEBGL);
+    background(40); // Blackchalk color
+    // Shift origin to top-left for consistency with 2D mode
+    translate(-width / 2, -height / 2);
+    // Initialize p5.brush
+    brush.load();
+  } else {
+    createCanvas(600, 600);
+    background(40); // Blackchalk color
+  }
 
   // Step 1: Pick first line connecting two opposite edges
   let line1 = {};
@@ -189,14 +202,12 @@ function setup() {
   };
 
   // Draw pepcircle1 (red)
-  fill(220, 60, 60);
-  noStroke();
-  circle(pepcircle1.x, pepcircle1.y, pepcircle1.radius * 2);
+  let redColor = [220, 60, 60];
+  drawFilledCircle(pepcircle1.x, pepcircle1.y, pepcircle1.radius, redColor);
 
   // Draw pepcircle2 (blue)
-  fill(72, 65, 209);
-  noStroke();
-  circle(pepcircle2.x, pepcircle2.y, pepcircle2.radius * 2);
+  let blueColor = [72, 65, 209];
+  drawFilledCircle(pepcircle2.x, pepcircle2.y, pepcircle2.radius, blueColor);
 
   // Draw intersection in white
   drawCircleIntersection(pepcircle1, pepcircle2);
@@ -207,6 +218,63 @@ function setup() {
   strokeWeight(4);
   line(line1.x1, line1.y1, line1.x2, line1.y2);
   line(line2.x1, line2.y1, line2.x2, line2.y2);
+}
+
+// ============================================================
+// DRAWING FUNCTIONS - Handle both p5.brush and standard modes
+// ============================================================
+
+function drawFilledCircle(x, y, radius, color) {
+  if (USE_BRUSH && typeof brush !== "undefined") {
+    // Build circle vertices for p5.brush
+    let vertices = [];
+    let steps = 60;
+    for (let i = 0; i < steps; i++) {
+      let angle = (TWO_PI / steps) * i;
+      let px = x + cos(angle) * radius;
+      let py = y + sin(angle) * radius;
+      vertices.push([px, py]);
+    }
+
+    // Configure watercolor effect
+    brush.noStroke();
+    brush.fill(color, 180);
+    brush.bleed(0.15, "out");
+    brush.fillTexture(0.5, 0.4);
+    brush.polygon(vertices);
+
+    // OTHER BRUSH OPTIONS (tunable parameters and usage)
+    // - brush.set("HB", "#002185", 1.2): name + color + weight multiplier
+    // - brush.stroke("#ff4d4d"): stroke color for lines/edges
+    // - brush.strokeWeight(1.5): thickness multiplier for the active brush
+    // - brush.noStroke(): disable outlines for subsequent shapes
+    //
+    // HATCHING (distance, angle, options):
+    // - brush.hatch(6, 30, {rand: 0.1, continuous: true, gradient: 0.2})
+    // - brush.setHatch("rotring", "green", 1.1)
+    // - brush.noHatch()
+    //
+    // VECTOR FIELDS (flow lines):
+    // brush.field("waves") / brush.noField();
+    // brush.refreshField(frameCount / 10);
+    //
+    // CUSTOM BRUSH PARAMETERS TO TUNE:
+    // - type: "standard" | "spray" | "marker" | "custom" | "image"
+    // - weight: base tip size (larger = thicker stroke)
+    // - vibration: jitter/spread of the stroke
+    // - definition/quality: clarity and continuity for standard brushes
+    // - opacity: base alpha (0-255)
+    // - spacing: distance between brush stamps
+    // - blend: true/false for paint mixing
+    // - pressure: curve + min/max pressure response
+    // - tip: custom geometry function (for type: "custom")
+    // - image: {src: "..."} for type: "image" brushes
+    // - rotate: "none" | "natural" | "random"
+  } else {
+    fill(color[0], color[1], color[2]);
+    noStroke();
+    circle(x, y, radius * 2);
+  }
 }
 
 function fillSegmentWithPolygons(
@@ -270,44 +338,107 @@ function fillSegmentWithPolygons(
 
 function drawPolygon(x, y, type, color, size, rotation) {
   // Draw different types of polygons with rotation
-  push();
-  translate(x, y);
-  rotate(rotation);
+  if (USE_BRUSH && typeof brush !== "undefined") {
+    // Build vertices in local space, then transform to world space
+    let vertices = buildPolygonVertices(type, size);
+    let transformed = transformVertices(vertices, x, y, rotation);
 
-  fill(color[0], color[1], color[2]);
-  // stroke(255);
-  noStroke();
-  strokeWeight(1);
+    // Configure watercolor effect for polygons
+    brush.noStroke();
+    brush.fill(color, 150);
+    brush.bleed(0.12, "out");
+    brush.fillTexture(0.45, 0.35);
+    brush.polygon(transformed);
+  } else {
+    push();
+    translate(x, y);
+    rotate(rotation);
+
+    fill(color[0], color[1], color[2]);
+    // stroke(255);
+    noStroke();
+    strokeWeight(1);
+
+    if (type === "triangle") {
+      // Equilateral triangle
+      let h = (size * sqrt(3)) / 2;
+      triangle(0, -size * 0.6, -size * 0.5, h * 0.4, size * 0.5, h * 0.4);
+    } else if (type === "square") {
+      // Square
+      rectMode(CENTER);
+      square(0, 0, size);
+    } else if (type === "hexagon") {
+      // Hexagon
+      beginShape();
+      for (let i = 0; i < 6; i++) {
+        let angle = (TWO_PI / 6) * i - HALF_PI;
+        let px = cos(angle) * size * 0.5;
+        let py = sin(angle) * size * 0.5;
+        vertex(px, py);
+      }
+      endShape(CLOSE);
+    } else if (type === "diamond") {
+      // Diamond (rhombus)
+      beginShape();
+      vertex(0, -size * 0.5);
+      vertex(size * 0.4, 0);
+      vertex(0, size * 0.5);
+      vertex(-size * 0.4, 0);
+      endShape(CLOSE);
+    }
+
+    pop();
+  }
+}
+
+function buildPolygonVertices(type, size) {
+  let vertices = [];
 
   if (type === "triangle") {
     // Equilateral triangle
     let h = (size * sqrt(3)) / 2;
-    triangle(0, -size * 0.6, -size * 0.5, h * 0.4, size * 0.5, h * 0.4);
+    vertices = [
+      [0, -size * 0.6],
+      [-size * 0.5, h * 0.4],
+      [size * 0.5, h * 0.4],
+    ];
   } else if (type === "square") {
     // Square
-    rectMode(CENTER);
-    square(0, 0, size);
+    let half = size * 0.5;
+    vertices = [
+      [-half, -half],
+      [half, -half],
+      [half, half],
+      [-half, half],
+    ];
   } else if (type === "hexagon") {
     // Hexagon
-    beginShape();
     for (let i = 0; i < 6; i++) {
       let angle = (TWO_PI / 6) * i - HALF_PI;
       let px = cos(angle) * size * 0.5;
       let py = sin(angle) * size * 0.5;
-      vertex(px, py);
+      vertices.push([px, py]);
     }
-    endShape(CLOSE);
   } else if (type === "diamond") {
     // Diamond (rhombus)
-    beginShape();
-    vertex(0, -size * 0.5);
-    vertex(size * 0.4, 0);
-    vertex(0, size * 0.5);
-    vertex(-size * 0.4, 0);
-    endShape(CLOSE);
+    vertices = [
+      [0, -size * 0.5],
+      [size * 0.4, 0],
+      [0, size * 0.5],
+      [-size * 0.4, 0],
+    ];
   }
 
-  pop();
+  return vertices;
+}
+
+function transformVertices(vertices, x, y, rotation) {
+  let cosR = cos(rotation);
+  let sinR = sin(rotation);
+  return vertices.map(([vx, vy]) => [
+    x + vx * cosR - vy * sinR,
+    y + vx * sinR + vy * cosR,
+  ]);
 }
 
 function drawCircleIntersection(circle1, circle2) {
@@ -378,28 +509,55 @@ function drawCircleIntersection(circle1, circle2) {
   }
 
   // Draw the lens-shaped intersection
-  fill(255); // White
-  noStroke();
-  beginShape();
-
-  // Arc from circle1 using proper angle interpolation
   let steps = 50;
-  for (let i = 0; i <= steps; i++) {
-    let angle = lerpAngle(angle1_1, angle1_2, i / steps);
-    let x = circle1.x + cos(angle) * circle1.radius;
-    let y = circle1.y + sin(angle) * circle1.radius;
-    vertex(x, y);
-  }
 
-  // Arc from circle2 (reverse direction)
-  for (let i = 0; i <= steps; i++) {
-    let angle = lerpAngle(angle2_2, angle2_1, i / steps);
-    let x = circle2.x + cos(angle) * circle2.radius;
-    let y = circle2.y + sin(angle) * circle2.radius;
-    vertex(x, y);
-  }
+  if (USE_BRUSH && typeof brush !== "undefined") {
+    let vertices = [];
 
-  endShape(CLOSE);
+    // Arc from circle1 using proper angle interpolation
+    for (let i = 0; i <= steps; i++) {
+      let angle = lerpAngle(angle1_1, angle1_2, i / steps);
+      let xp = circle1.x + cos(angle) * circle1.radius;
+      let yp = circle1.y + sin(angle) * circle1.radius;
+      vertices.push([xp, yp]);
+    }
+
+    // Arc from circle2 (reverse direction)
+    for (let i = 0; i <= steps; i++) {
+      let angle = lerpAngle(angle2_2, angle2_1, i / steps);
+      let xp = circle2.x + cos(angle) * circle2.radius;
+      let yp = circle2.y + sin(angle) * circle2.radius;
+      vertices.push([xp, yp]);
+    }
+
+    brush.noStroke();
+    brush.fill([255, 255, 255], 220);
+    brush.bleed(0.1, "out");
+    brush.fillTexture(0.3, 0.5);
+    brush.polygon(vertices);
+  } else {
+    fill(255); // White
+    noStroke();
+    beginShape();
+
+    // Arc from circle1 using proper angle interpolation
+    for (let i = 0; i <= steps; i++) {
+      let angle = lerpAngle(angle1_1, angle1_2, i / steps);
+      let x = circle1.x + cos(angle) * circle1.radius;
+      let y = circle1.y + sin(angle) * circle1.radius;
+      vertex(x, y);
+    }
+
+    // Arc from circle2 (reverse direction)
+    for (let i = 0; i <= steps; i++) {
+      let angle = lerpAngle(angle2_2, angle2_1, i / steps);
+      let x = circle2.x + cos(angle) * circle2.radius;
+      let y = circle2.y + sin(angle) * circle2.radius;
+      vertex(x, y);
+    }
+
+    endShape(CLOSE);
+  }
 }
 
 function lerpAngle(a1, a2, t) {
@@ -584,4 +742,5 @@ function findEdgePoints(cx, cy, angle) {
 
 function draw() {
   // No animation needed
+  noLoop();
 }
