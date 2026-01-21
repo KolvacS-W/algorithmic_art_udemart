@@ -1,6 +1,6 @@
 function setup() {
   createCanvas(600, 600);
-  background(240);
+  background(40); // Blackchalk color
 
   // Step 1: Pick first line connecting two opposite edges
   let line1 = {};
@@ -28,7 +28,7 @@ function setup() {
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     // Pick a random point on line1
-    let t = random(0.2, 0.8);  // Stay away from edges
+    let t = random(0.2, 0.8); // Stay away from edges
     let px = line1.x1 + t * (line1.x2 - line1.x1);
     let py = line1.y1 + t * (line1.y2 - line1.y1);
 
@@ -45,44 +45,44 @@ function setup() {
   let intersection = findLineIntersection(line1, line2);
   let cx = intersection.x;
   let cy = intersection.y;
-  let heart = {x: cx, y: cy};
+  let heart = { x: cx, y: cy };
 
   // Collect all 4 edge points where lines hit the canvas
   let edgePoints = [
-    {x: line1.x1, y: line1.y1},
-    {x: line1.x2, y: line1.y2},
-    {x: line2.x1, y: line2.y1},
-    {x: line2.x2, y: line2.y2}
+    { x: line1.x1, y: line1.y1 },
+    { x: line1.x2, y: line1.y2 },
+    { x: line2.x1, y: line2.y1 },
+    { x: line2.x2, y: line2.y2 },
   ];
 
   // Define the 4 corners
   let corners = [
-    {x: 0, y: 0, name: 'top-left'},
-    {x: width, y: 0, name: 'top-right'},
-    {x: width, y: height, name: 'bottom-right'},
-    {x: 0, y: height, name: 'bottom-left'}
+    { x: 0, y: 0, name: "top-left" },
+    { x: width, y: 0, name: "top-right" },
+    { x: width, y: height, name: "bottom-right" },
+    { x: 0, y: height, name: "bottom-left" },
   ];
 
   // Define beverage-inspired colorset from the picture
   let beverageColorset = [
-    [139, 69, 19],    // Brown (beer bottles)
-    [160, 82, 45],    // Saddle brown (beer)
-    [0, 48, 135],     // Dark blue (Pepsi)
-    [220, 20, 60],    // Crimson red (Pepsi, cans)
-    [34, 139, 34],    // Forest green (7Up)
-    [173, 255, 47],   // Yellow-green (Mountain Dew)
-    [255, 140, 0],    // Dark orange (Crush, Gatorade)
-    [255, 69, 0],     // Red-orange (Gatorade)
-    [65, 105, 225],   // Royal blue (Gatorade)
-    [138, 43, 226],   // Blue violet (drinks)
-    [255, 215, 0],    // Gold (bottles)
-    [50, 205, 50],    // Lime green (Mountain Dew)
-    [178, 34, 34],    // Fire brick red (Dr Pepper)
-    [70, 130, 180]    // Steel blue (cans)
+    [139, 69, 19], // Brown (beer bottles)
+    [160, 82, 45], // Saddle brown (beer)
+    [0, 48, 135], // Dark blue (Pepsi)
+    [220, 20, 60], // Crimson red (Pepsi, cans)
+    [34, 139, 34], // Forest green (7Up)
+    [173, 255, 47], // Yellow-green (Mountain Dew)
+    [255, 140, 0], // Dark orange (Crush, Gatorade)
+    [255, 69, 0], // Red-orange (Gatorade)
+    [65, 105, 225], // Royal blue (Gatorade)
+    [138, 43, 226], // Blue violet (drinks)
+    [255, 215, 0], // Gold (bottles)
+    [50, 205, 50], // Lime green (Mountain Dew)
+    [178, 34, 34], // Fire brick red (Dr Pepper)
+    [70, 130, 180], // Steel blue (cans)
   ];
 
   // Define polygon types for each segment
-  let polygonTypes = ['triangle', 'square', 'hexagon', 'diamond'];
+  let polygonTypes = ["triangle", "square", "hexagon", "diamond"];
 
   // For each corner, find its 2 closest edge points and draw the segment
   for (let i = 0; i < 4; i++) {
@@ -95,12 +95,17 @@ function setup() {
       let segmentVertices = [
         corners[i],
         closestPoints[0],
-        {x: cx, y: cy},
-        closestPoints[1]
+        { x: cx, y: cy },
+        closestPoints[1],
       ];
 
       // Fill segment with grid of polygons aligned with the lines
-      fillSegmentWithPolygons(segmentVertices, polygonTypes[i], beverageColorset, angle1);
+      fillSegmentWithPolygons(
+        segmentVertices,
+        polygonTypes[i],
+        beverageColorset,
+        angle1,
+      );
     }
   }
 
@@ -114,18 +119,12 @@ function setup() {
   let pepcircle1 = {
     x: heart.x + cos(angleFromHeart) * distFromHeart,
     y: heart.y + sin(angleFromHeart) * distFromHeart,
-    radius: 0
+    radius: 0,
   };
 
   // Radius must be larger than distance from circle center to heart
   let minRadius = distFromHeart;
   pepcircle1.radius = random(minRadius + 10, minRadius + 60);
-
-  // Draw pepcircle1
-  noFill();
-  stroke(60, 90, 180);
-  strokeWeight(3);
-  circle(pepcircle1.x, pepcircle1.y, pepcircle1.radius * 2);
 
   // Create pepcircle2
   // Sample a point at distance [pepcircle1.radius, pepcircle1.radius * 1.5] from pepcircle1
@@ -135,14 +134,21 @@ function setup() {
   let pepcircle2 = {
     x: pepcircle1.x + cos(angleFromPepcircle1) * distFromPepcircle1,
     y: pepcircle1.y + sin(angleFromPepcircle1) * distFromPepcircle1,
-    radius: random(pepcircle1.radius * 0.5, pepcircle1.radius)
+    radius: random(pepcircle1.radius * 0.5, pepcircle1.radius),
   };
 
-  // Draw pepcircle2
-  noFill();
-  stroke(60, 90, 180);
-  strokeWeight(3);
+  // Draw pepcircle1 (red)
+  fill(220, 60, 60);
+  noStroke();
+  circle(pepcircle1.x, pepcircle1.y, pepcircle1.radius * 2);
+
+  // Draw pepcircle2 (blue)
+  fill(60, 120, 220);
+  noStroke();
   circle(pepcircle2.x, pepcircle2.y, pepcircle2.radius * 2);
+
+  // Draw intersection in white
+  drawCircleIntersection(pepcircle1, pepcircle2);
 
   // Draw the 2 perpendicular lines on top
   stroke(60, 90, 180);
@@ -151,15 +157,20 @@ function setup() {
   line(line2.x1, line2.y1, line2.x2, line2.y2);
 }
 
-function fillSegmentWithPolygons(segmentVertices, polygonType, colorset, gridAngle) {
+function fillSegmentWithPolygons(
+  segmentVertices,
+  polygonType,
+  colorset,
+  gridAngle,
+) {
   // Fill a segment with a grid of polygons aligned with the lines
-  let goodSize = 30; // Base distance between polygon centers
+  let goodSize = 70; // Base distance between polygon centers
 
   // Find bounding box of the segment
-  let minX = min(segmentVertices.map(v => v.x));
-  let maxX = max(segmentVertices.map(v => v.x));
-  let minY = min(segmentVertices.map(v => v.y));
-  let maxY = max(segmentVertices.map(v => v.y));
+  let minX = min(segmentVertices.map((v) => v.x));
+  let maxX = max(segmentVertices.map((v) => v.x));
+  let minY = min(segmentVertices.map((v) => v.y));
+  let maxY = max(segmentVertices.map((v) => v.y));
 
   // Calculate grid directions (aligned with the lines)
   let dx1 = cos(gridAngle);
@@ -207,25 +218,25 @@ function drawPolygon(x, y, type, color, size, rotation) {
   stroke(255);
   strokeWeight(1);
 
-  if (type === 'triangle') {
+  if (type === "triangle") {
     // Equilateral triangle
-    let h = size * sqrt(3) / 2;
+    let h = (size * sqrt(3)) / 2;
     triangle(0, -size * 0.6, -size * 0.5, h * 0.4, size * 0.5, h * 0.4);
-  } else if (type === 'square') {
+  } else if (type === "square") {
     // Square
     rectMode(CENTER);
     square(0, 0, size);
-  } else if (type === 'hexagon') {
+  } else if (type === "hexagon") {
     // Hexagon
     beginShape();
     for (let i = 0; i < 6; i++) {
-      let angle = TWO_PI / 6 * i - HALF_PI;
+      let angle = (TWO_PI / 6) * i - HALF_PI;
       let px = cos(angle) * size * 0.5;
       let py = sin(angle) * size * 0.5;
       vertex(px, py);
     }
     endShape(CLOSE);
-  } else if (type === 'diamond') {
+  } else if (type === "diamond") {
     // Diamond (rhombus)
     beginShape();
     vertex(0, -size * 0.5);
@@ -238,15 +249,120 @@ function drawPolygon(x, y, type, color, size, rotation) {
   pop();
 }
 
+function drawCircleIntersection(circle1, circle2) {
+  // Calculate distance between circle centers
+  let d = dist(circle1.x, circle1.y, circle2.x, circle2.y);
+
+  // Check if circles intersect
+  if (
+    d >= circle1.radius + circle2.radius ||
+    d <= abs(circle1.radius - circle2.radius)
+  ) {
+    // No intersection or one circle is inside the other
+    return;
+  }
+
+  // Calculate intersection points using circle-circle intersection formula
+  let a =
+    (circle1.radius * circle1.radius -
+      circle2.radius * circle2.radius +
+      d * d) /
+    (2 * d);
+  let h = sqrt(circle1.radius * circle1.radius - a * a);
+
+  // Point on line between centers
+  let px = circle1.x + (a * (circle2.x - circle1.x)) / d;
+  let py = circle1.y + (a * (circle2.y - circle1.y)) / d;
+
+  // The two intersection points
+  let ix1 = px + (h * (circle2.y - circle1.y)) / d;
+  let iy1 = py - (h * (circle2.x - circle1.x)) / d;
+  let ix2 = px - (h * (circle2.y - circle1.y)) / d;
+  let iy2 = py + (h * (circle2.x - circle1.x)) / d;
+
+  // Calculate angles from each circle center to intersection points
+  let angle1_1 = atan2(iy1 - circle1.y, ix1 - circle1.x);
+  let angle1_2 = atan2(iy2 - circle1.y, ix2 - circle1.x);
+  let angle2_1 = atan2(iy1 - circle2.y, ix1 - circle2.x);
+  let angle2_2 = atan2(iy2 - circle2.y, ix2 - circle2.x);
+
+  // Determine which arc direction to use (we want the smaller arc towards the other circle)
+  let mid1 = (angle1_1 + angle1_2) / 2;
+  let angleTo2 = atan2(circle2.y - circle1.y, circle2.x - circle1.x);
+
+  // Normalize angle difference
+  let diff = angleTo2 - mid1;
+  while (diff > PI) diff -= TWO_PI;
+  while (diff < -PI) diff += TWO_PI;
+
+  // If the midpoint of the arc is not towards circle2, swap the angles
+  if (abs(diff) > HALF_PI) {
+    let temp = angle1_1;
+    angle1_1 = angle1_2;
+    angle1_2 = temp;
+  }
+
+  // Same for circle2
+  let mid2 = (angle2_1 + angle2_2) / 2;
+  let angleTo1 = atan2(circle1.y - circle2.y, circle1.x - circle2.x);
+
+  diff = angleTo1 - mid2;
+  while (diff > PI) diff -= TWO_PI;
+  while (diff < -PI) diff += TWO_PI;
+
+  if (abs(diff) > HALF_PI) {
+    let temp = angle2_1;
+    angle2_1 = angle2_2;
+    angle2_2 = temp;
+  }
+
+  // Draw the lens-shaped intersection
+  fill(255); // White
+  noStroke();
+  beginShape();
+
+  // Arc from circle1 using proper angle interpolation
+  let steps = 50;
+  for (let i = 0; i <= steps; i++) {
+    let angle = lerpAngle(angle1_1, angle1_2, i / steps);
+    let x = circle1.x + cos(angle) * circle1.radius;
+    let y = circle1.y + sin(angle) * circle1.radius;
+    vertex(x, y);
+  }
+
+  // Arc from circle2 (reverse direction)
+  for (let i = 0; i <= steps; i++) {
+    let angle = lerpAngle(angle2_2, angle2_1, i / steps);
+    let x = circle2.x + cos(angle) * circle2.radius;
+    let y = circle2.y + sin(angle) * circle2.radius;
+    vertex(x, y);
+  }
+
+  endShape(CLOSE);
+}
+
+function lerpAngle(a1, a2, t) {
+  // Properly interpolate between two angles, taking the shortest path
+  let diff = a2 - a1;
+
+  // Normalize to [-PI, PI]
+  while (diff > PI) diff -= TWO_PI;
+  while (diff < -PI) diff += TWO_PI;
+
+  return a1 + diff * t;
+}
+
 function pointInPolygon(px, py, vertices) {
   // Ray casting algorithm to check if point is inside polygon
   let inside = false;
   for (let i = 0, j = vertices.length - 1; i < vertices.length; j = i++) {
-    let xi = vertices[i].x, yi = vertices[i].y;
-    let xj = vertices[j].x, yj = vertices[j].y;
+    let xi = vertices[i].x,
+      yi = vertices[i].y;
+    let xj = vertices[j].x,
+      yj = vertices[j].y;
 
-    let intersect = ((yi > py) !== (yj > py)) &&
-      (px < (xj - xi) * (py - yi) / (yj - yi) + xi);
+    let intersect =
+      yi > py !== yj > py && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi;
     if (intersect) inside = !inside;
   }
   return inside;
@@ -258,7 +374,7 @@ function findClosestEdgePoints(corner, edgePoints) {
 
   for (let point of edgePoints) {
     // Check if point shares an edge with the corner
-    if ((point.x === corner.x) || (point.y === corner.y)) {
+    if (point.x === corner.x || point.y === corner.y) {
       result.push(point);
     }
   }
@@ -279,14 +395,20 @@ function connectsOppositeEdges(line) {
   let edge2 = getEdge(line.x2, line.y2);
 
   // Opposite edges: top-bottom or left-right
-  if ((edge1 === 'top' && edge2 === 'bottom') || (edge1 === 'bottom' && edge2 === 'top')) {
-    return true;  // Top and bottom are opposite
+  if (
+    (edge1 === "top" && edge2 === "bottom") ||
+    (edge1 === "bottom" && edge2 === "top")
+  ) {
+    return true; // Top and bottom are opposite
   }
-  if ((edge1 === 'left' && edge2 === 'right') || (edge1 === 'right' && edge2 === 'left')) {
-    return true;  // Left and right are opposite
+  if (
+    (edge1 === "left" && edge2 === "right") ||
+    (edge1 === "right" && edge2 === "left")
+  ) {
+    return true; // Left and right are opposite
   }
 
-  return false;  // Adjacent edges
+  return false; // Adjacent edges
 }
 
 function connectsSameEdges(line1, line2) {
@@ -307,23 +429,27 @@ function connectsSameEdges(line1, line2) {
 
 function findLineIntersection(line1, line2) {
   // Find intersection point of two lines
-  let x1 = line1.x1, y1 = line1.y1;
-  let x2 = line1.x2, y2 = line1.y2;
-  let x3 = line2.x1, y3 = line2.y1;
-  let x4 = line2.x2, y4 = line2.y2;
+  let x1 = line1.x1,
+    y1 = line1.y1;
+  let x2 = line1.x2,
+    y2 = line1.y2;
+  let x3 = line2.x1,
+    y3 = line2.y1;
+  let x4 = line2.x2,
+    y4 = line2.y2;
 
   let denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
 
   if (abs(denom) < 0.001) {
     // Lines are parallel, return midpoint
-    return {x: width / 2, y: height / 2};
+    return { x: width / 2, y: height / 2 };
   }
 
   let t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom;
 
   return {
     x: x1 + t * (x2 - x1),
-    y: y1 + t * (y2 - y1)
+    y: y1 + t * (y2 - y1),
   };
 }
 
@@ -331,13 +457,13 @@ function getEdge(x, y) {
   // Determine which edge a point is on (with small tolerance)
   let tolerance = 0.1;
 
-  if (abs(y) < tolerance) return 'top';
-  if (abs(y - height) < tolerance) return 'bottom';
-  if (abs(x) < tolerance) return 'left';
-  if (abs(x - width) < tolerance) return 'right';
+  if (abs(y) < tolerance) return "top";
+  if (abs(y - height) < tolerance) return "bottom";
+  if (abs(x) < tolerance) return "left";
+  if (abs(x - width) < tolerance) return "right";
 
   // Shouldn't happen, but return something
-  return 'unknown';
+  return "unknown";
 }
 
 function findEdgePoints(cx, cy, angle) {
@@ -391,7 +517,7 @@ function findEdgePoints(cx, cy, angle) {
     x1: points[0].x,
     y1: points[0].y,
     x2: points[points.length - 1].x,
-    y2: points[points.length - 1].y
+    y2: points[points.length - 1].y,
   };
 }
 
