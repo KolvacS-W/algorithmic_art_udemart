@@ -63,22 +63,55 @@ function setup() {
     { x: 0, y: height, name: "bottom-left" },
   ];
 
-  // Define beverage-inspired colorset from the picture
-  let beverageColorset = [
-    [139, 69, 19], // Brown (beer bottles)
-    [160, 82, 45], // Saddle brown (beer)
-    [0, 48, 135], // Dark blue (Pepsi)
-    [220, 20, 60], // Crimson red (Pepsi, cans)
-    [34, 139, 34], // Forest green (7Up)
-    [173, 255, 47], // Yellow-green (Mountain Dew)
-    [255, 140, 0], // Dark orange (Crush, Gatorade)
-    [255, 69, 0], // Red-orange (Gatorade)
-    [65, 105, 225], // Royal blue (Gatorade)
-    [138, 43, 226], // Blue violet (drinks)
-    [255, 215, 0], // Gold (bottles)
+  // Diverse colorset from vending machine goods (snacks + beverages)
+  let vendingColorset = [
+    // Chip bag yellows & golds
+    [255, 215, 0], // Bright gold (Lay's Classic)
+    [255, 195, 50], // Warm yellow (snack bags)
+    [242, 169, 0], // Golden yellow
+
+    // Oranges & warm tones
+    [255, 140, 0], // Vibrant orange (Doritos, Crush)
+    [255, 99, 71], // Tomato red-orange (Doritos Nacho)
+    [255, 127, 80], // Coral (snack packaging)
+
+    // Reds & pinks
+    [220, 20, 60], // Crimson (Pepsi, Doritos)
+    [199, 21, 133], // Deep pink (candy/gum wrappers)
+    [178, 34, 34], // Fire brick (Dr Pepper, dark reds)
+    [240, 80, 80], // Salmon red (Pringles)
+
+    // Blues & purples
+    [0, 48, 135], // Deep Pepsi blue
+    [65, 105, 225], // Royal blue (Gatorade, packaging)
+    [138, 43, 226], // Blue violet (candy bars)
+    [100, 149, 237], // Cornflower blue (lighter packaging)
+    [147, 112, 219], // Medium purple (candy)
+
+    // Greens
+    [34, 139, 34], // Forest green (7Up bottles)
     [50, 205, 50], // Lime green (Mountain Dew)
-    [178, 34, 34], // Fire brick red (Dr Pepper)
+    [173, 255, 47], // Yellow-green (bright Dew)
+    [60, 179, 113], // Sea green (mint packaging)
+    [144, 238, 144], // Light green (packaging accents)
+
+    // Browns & earth tones
+    [139, 69, 19], // Saddle brown (beer bottles)
+    [160, 82, 45], // Sienna (chocolate, coffee)
+    [205, 133, 63], // Peru brown (lighter brown bags)
+    [188, 143, 143], // Rosy brown (chocolate bars)
+
+    // Metallic & silver tones
+    [192, 192, 192], // Silver (beverage packaging)
+    [169, 169, 169], // Dark gray (metallic chips)
+    [211, 211, 211], // Light gray (silver accents)
+
+    // Additional vibrant tones
+    [255, 20, 147], // Deep pink (bright candy)
+    [255, 165, 0], // Orange (Fanta, cheese puffs)
     [70, 130, 180], // Steel blue (cans)
+    [147, 197, 114], // Muted sage green
+    [230, 190, 255], // Lavender (light purple snacks)
   ];
 
   // Define polygon types for each segment
@@ -119,7 +152,7 @@ function setup() {
       fillSegmentWithPolygons(
         segmentVertices,
         polygonTypes[i],
-        beverageColorset,
+        vendingColorset,
         angle1,
         goodsizes[i],
         goodensities[i],
@@ -161,7 +194,7 @@ function setup() {
   circle(pepcircle1.x, pepcircle1.y, pepcircle1.radius * 2);
 
   // Draw pepcircle2 (blue)
-  fill(60, 120, 220);
+  fill(72, 65, 209);
   noStroke();
   circle(pepcircle2.x, pepcircle2.y, pepcircle2.radius * 2);
 
