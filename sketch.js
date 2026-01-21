@@ -49,14 +49,16 @@ function setup() {
     {x: 0, y: height, name: 'bottom-left'}
   ];
 
-  // Draw the 4 colored segments
-  noStroke();
+  // Draw the 4 colored segments with different polygon grids
   let colors = [
     [200, 220, 255],  // light blue
     [255, 180, 180],  // light coral
     [255, 240, 180],  // light yellow
     [200, 255, 200]   // light green
   ];
+
+  // Define polygon types for each segment
+  let polygonTypes = ['triangle', 'square', 'hexagon', 'diamond'];
 
   // For each corner, find its 2 closest edge points and draw the segment
   for (let i = 0; i < 4; i++) {
@@ -65,15 +67,16 @@ function setup() {
 
     // Only draw if we have exactly 2 edge points for this corner
     if (closestPoints.length === 2) {
-      fill(colors[i][0], colors[i][1], colors[i][2]);
+      // Define the segment boundary
+      let segmentVertices = [
+        corners[i],
+        closestPoints[0],
+        {x: cx, y: cy},
+        closestPoints[1]
+      ];
 
-      // Draw polygon: corner -> edge point 1 -> center -> edge point 2 -> corner
-      beginShape();
-      vertex(corners[i].x, corners[i].y);
-      vertex(closestPoints[0].x, closestPoints[0].y);
-      vertex(cx, cy);
-      vertex(closestPoints[1].x, closestPoints[1].y);
-      endShape(CLOSE);
+      // Fill segment with grid of polygons
+      fillSegmentWithPolygons(segmentVertices, polygonTypes[i], colors[i]);
     }
   }
 
@@ -82,6 +85,77 @@ function setup() {
   strokeWeight(4);
   line(line1.x1, line1.y1, line1.x2, line1.y2);
   line(line2.x1, line2.y1, line2.x2, line2.y2);
+}
+
+function fillSegmentWithPolygons(segmentVertices, polygonType, color) {
+  // Fill a segment with a grid of polygons
+  let gridSize = 30; // Distance between polygon centers
+
+  // Find bounding box of the segment
+  let minX = min(segmentVertices.map(v => v.x));
+  let maxX = max(segmentVertices.map(v => v.x));
+  let minY = min(segmentVertices.map(v => v.y));
+  let maxY = max(segmentVertices.map(v => v.y));
+
+  // Create grid of polygons
+  for (let x = minX; x <= maxX; x += gridSize) {
+    for (let y = minY; y <= maxY; y += gridSize) {
+      // Check if this point is inside the segment
+      if (pointInPolygon(x, y, segmentVertices)) {
+        // Draw polygon at this position
+        drawPolygon(x, y, polygonType, color, gridSize * 0.4);
+      }
+    }
+  }
+}
+
+function drawPolygon(x, y, type, color, size) {
+  // Draw different types of polygons
+  fill(color[0], color[1], color[2]);
+  stroke(255);
+  strokeWeight(1);
+
+  if (type === 'triangle') {
+    // Equilateral triangle
+    let h = size * sqrt(3) / 2;
+    triangle(x, y - size * 0.6, x - size * 0.5, y + h * 0.4, x + size * 0.5, y + h * 0.4);
+  } else if (type === 'square') {
+    // Square
+    rectMode(CENTER);
+    square(x, y, size);
+  } else if (type === 'hexagon') {
+    // Hexagon
+    beginShape();
+    for (let i = 0; i < 6; i++) {
+      let angle = TWO_PI / 6 * i - HALF_PI;
+      let px = x + cos(angle) * size * 0.5;
+      let py = y + sin(angle) * size * 0.5;
+      vertex(px, py);
+    }
+    endShape(CLOSE);
+  } else if (type === 'diamond') {
+    // Diamond (rhombus)
+    beginShape();
+    vertex(x, y - size * 0.5);
+    vertex(x + size * 0.4, y);
+    vertex(x, y + size * 0.5);
+    vertex(x - size * 0.4, y);
+    endShape(CLOSE);
+  }
+}
+
+function pointInPolygon(px, py, vertices) {
+  // Ray casting algorithm to check if point is inside polygon
+  let inside = false;
+  for (let i = 0, j = vertices.length - 1; i < vertices.length; j = i++) {
+    let xi = vertices[i].x, yi = vertices[i].y;
+    let xj = vertices[j].x, yj = vertices[j].y;
+
+    let intersect = ((yi > py) !== (yj > py)) &&
+      (px < (xj - xi) * (py - yi) / (yj - yi) + xi);
+    if (intersect) inside = !inside;
+  }
+  return inside;
 }
 
 function findClosestEdgePoints(corner, edgePoints) {
