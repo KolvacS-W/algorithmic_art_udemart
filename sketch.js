@@ -63,12 +63,22 @@ function setup() {
     {x: 0, y: height, name: 'bottom-left'}
   ];
 
-  // Draw the 4 colored segments with different polygon grids
-  let colors = [
-    [200, 220, 255],  // light blue
-    [255, 180, 180],  // light coral
-    [255, 240, 180],  // light yellow
-    [200, 255, 200]   // light green
+  // Define beverage-inspired colorset from the picture
+  let beverageColorset = [
+    [139, 69, 19],    // Brown (beer bottles)
+    [160, 82, 45],    // Saddle brown (beer)
+    [0, 48, 135],     // Dark blue (Pepsi)
+    [220, 20, 60],    // Crimson red (Pepsi, cans)
+    [34, 139, 34],    // Forest green (7Up)
+    [173, 255, 47],   // Yellow-green (Mountain Dew)
+    [255, 140, 0],    // Dark orange (Crush, Gatorade)
+    [255, 69, 0],     // Red-orange (Gatorade)
+    [65, 105, 225],   // Royal blue (Gatorade)
+    [138, 43, 226],   // Blue violet (drinks)
+    [255, 215, 0],    // Gold (bottles)
+    [50, 205, 50],    // Lime green (Mountain Dew)
+    [178, 34, 34],    // Fire brick red (Dr Pepper)
+    [70, 130, 180]    // Steel blue (cans)
   ];
 
   // Define polygon types for each segment
@@ -90,7 +100,7 @@ function setup() {
       ];
 
       // Fill segment with grid of polygons aligned with the lines
-      fillSegmentWithPolygons(segmentVertices, polygonTypes[i], colors[i], angle1);
+      fillSegmentWithPolygons(segmentVertices, polygonTypes[i], beverageColorset, angle1);
     }
   }
 
@@ -141,9 +151,9 @@ function setup() {
   line(line2.x1, line2.y1, line2.x2, line2.y2);
 }
 
-function fillSegmentWithPolygons(segmentVertices, polygonType, color, gridAngle) {
+function fillSegmentWithPolygons(segmentVertices, polygonType, colorset, gridAngle) {
   // Fill a segment with a grid of polygons aligned with the lines
-  let gridSize = 30; // Distance between polygon centers
+  let goodSize = 30; // Base distance between polygon centers
 
   // Find bounding box of the segment
   let minX = min(segmentVertices.map(v => v.x));
@@ -163,19 +173,25 @@ function fillSegmentWithPolygons(segmentVertices, polygonType, color, gridAngle)
 
   // Determine how many grid steps we need in each direction
   let maxDist = max(maxX - minX, maxY - minY) * 1.5;
-  let steps = ceil(maxDist / gridSize);
+  let steps = ceil(maxDist / goodSize);
 
   // Create rotated grid of polygons
   for (let i = -steps; i <= steps; i++) {
     for (let j = -steps; j <= steps; j++) {
       // Calculate position in rotated grid
-      let x = centerX + i * gridSize * dx1 + j * gridSize * dx2;
-      let y = centerY + i * gridSize * dy1 + j * gridSize * dy2;
+      let x = centerX + i * goodSize * dx1 + j * goodSize * dx2;
+      let y = centerY + i * goodSize * dy1 + j * goodSize * dy2;
 
       // Check if this point is inside the segment
       if (pointInPolygon(x, y, segmentVertices)) {
-        // Draw polygon at this position with rotation
-        drawPolygon(x, y, polygonType, color, gridSize * 0.4, gridAngle);
+        // Randomize polygon size within [goodSize*0.8, goodSize*1.2]
+        let randomSize = random(goodSize * 0.8, goodSize * 1.2) * 0.4;
+
+        // Randomly sample a color from the colorset
+        let randomColor = random(colorset);
+
+        // Draw polygon at this position with rotation and random properties
+        drawPolygon(x, y, polygonType, randomColor, randomSize, gridAngle);
       }
     }
   }
