@@ -3,20 +3,35 @@ function setup() {
   background(240);
 
   // Pick a random center point where the two lines intersect
-  let cx = random(100, 500);
-  let cy = random(100, 500);
+  let cx = random(150, width - 150);
+  let cy = random(150, height - 150);
 
-  // Pick a random angle for the first line
-  let angle1 = random(TWO_PI);
+  // Try to find valid perpendicular lines that connect opposite edges
+  let line1, line2, angle1, angle2;
+  let maxAttempts = 100;
+  let attempt = 0;
 
-  // Second line is perpendicular (90 degrees)
-  let angle2 = angle1 + HALF_PI;
+  while (attempt < maxAttempts) {
+    // Pick a random angle for the first line
+    angle1 = random(TWO_PI);
 
-  // Find where line 1 hits the edges
-  let line1 = findEdgePoints(cx, cy, angle1);
+    // Second line is perpendicular (90 degrees)
+    angle2 = angle1 + HALF_PI;
 
-  // Find where line 2 hits the edges
-  let line2 = findEdgePoints(cx, cy, angle2);
+    // Find where each line hits the canvas edges
+    line1 = findEdgePoints(cx, cy, angle1);
+    line2 = findEdgePoints(cx, cy, angle2);
+
+    // Check if both lines connect opposite edges (not adjacent)
+    let line1Valid = connectsOppositeEdges(line1);
+    let line2Valid = connectsOppositeEdges(line2);
+
+    if (line1Valid && line2Valid) {
+      break;  // Found valid lines!
+    }
+
+    attempt++;
+  }
 
   // Collect all 4 edge points where lines hit the canvas
   let edgePoints = [
@@ -45,18 +60,21 @@ function setup() {
 
   // For each corner, find its 2 closest edge points and draw the segment
   for (let i = 0; i < 4; i++) {
-    fill(colors[i][0], colors[i][1], colors[i][2]);
-
     // Find the 2 edge points closest to this corner
     let closestPoints = findClosestEdgePoints(corners[i], edgePoints);
 
-    // Draw polygon: corner -> edge point 1 -> center -> edge point 2 -> corner
-    beginShape();
-    vertex(corners[i].x, corners[i].y);
-    vertex(closestPoints[0].x, closestPoints[0].y);
-    vertex(cx, cy);
-    vertex(closestPoints[1].x, closestPoints[1].y);
-    endShape(CLOSE);
+    // Only draw if we have exactly 2 edge points for this corner
+    if (closestPoints.length === 2) {
+      fill(colors[i][0], colors[i][1], colors[i][2]);
+
+      // Draw polygon: corner -> edge point 1 -> center -> edge point 2 -> corner
+      beginShape();
+      vertex(corners[i].x, corners[i].y);
+      vertex(closestPoints[0].x, closestPoints[0].y);
+      vertex(cx, cy);
+      vertex(closestPoints[1].x, closestPoints[1].y);
+      endShape(CLOSE);
+    }
   }
 
   // Draw the 2 perpendicular lines on top
@@ -87,16 +105,44 @@ function findClosestEdgePoints(corner, edgePoints) {
   return result.slice(0, 2);
 }
 
+function connectsOppositeEdges(line) {
+  // Check if a line connects opposite edges (not adjacent edges)
+  let edge1 = getEdge(line.x1, line.y1);
+  let edge2 = getEdge(line.x2, line.y2);
+
+  // Opposite edges: top-bottom or left-right
+  if ((edge1 === 'top' && edge2 === 'bottom') || (edge1 === 'bottom' && edge2 === 'top')) {
+    return true;  // Top and bottom are opposite
+  }
+  if ((edge1 === 'left' && edge2 === 'right') || (edge1 === 'right' && edge2 === 'left')) {
+    return true;  // Left and right are opposite
+  }
+
+  return false;  // Adjacent edges
+}
+
+function getEdge(x, y) {
+  // Determine which edge a point is on (with small tolerance)
+  let tolerance = 0.1;
+
+  if (abs(y) < tolerance) return 'top';
+  if (abs(y - height) < tolerance) return 'bottom';
+  if (abs(x) < tolerance) return 'left';
+  if (abs(x - width) < tolerance) return 'right';
+
+  // Shouldn't happen, but return something
+  return 'unknown';
+}
+
 function findEdgePoints(cx, cy, angle) {
-  // Direction vector
+  // Find where a line through (cx, cy) at given angle hits canvas edges
   let dx = cos(angle);
   let dy = sin(angle);
 
-  // Find intersection points with canvas edges
   let points = [];
 
   // Check intersection with left edge (x = 0)
-  if (dx != 0) {
+  if (abs(dx) > 0.001) {
     let t = -cx / dx;
     let y = cy + t * dy;
     if (y >= 0 && y <= height) {
@@ -105,7 +151,7 @@ function findEdgePoints(cx, cy, angle) {
   }
 
   // Check intersection with right edge (x = width)
-  if (dx != 0) {
+  if (abs(dx) > 0.001) {
     let t = (width - cx) / dx;
     let y = cy + t * dy;
     if (y >= 0 && y <= height) {
@@ -114,7 +160,7 @@ function findEdgePoints(cx, cy, angle) {
   }
 
   // Check intersection with top edge (y = 0)
-  if (dy != 0) {
+  if (abs(dy) > 0.001) {
     let t = -cy / dy;
     let x = cx + t * dx;
     if (x >= 0 && x <= width) {
@@ -123,7 +169,7 @@ function findEdgePoints(cx, cy, angle) {
   }
 
   // Check intersection with bottom edge (y = height)
-  if (dy != 0) {
+  if (abs(dy) > 0.001) {
     let t = (height - cy) / dy;
     let x = cx + t * dx;
     if (x >= 0 && x <= width) {
