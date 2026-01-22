@@ -10,6 +10,7 @@ function setup() {
     translate(-width / 2, -height / 2);
     // Initialize p5.brush
     brush.load();
+    configureBrushDefaults();
   } else {
     createCanvas(600, 600);
     background(40); // Blackchalk color
@@ -220,6 +221,14 @@ function setup() {
   line(line2.x1, line2.y1, line2.x2, line2.y2);
 }
 
+function configureBrushDefaults() {
+  // Global brush setup for the whole sketch
+  // brush.pick("marker");
+  // brush.strokeWeight(1.1);
+  // brush.bleed(0.06, "in");
+  brush.pick("charcoal");
+}
+
 // ============================================================
 // DRAWING FUNCTIONS - Handle both p5.brush and standard modes
 // ============================================================
@@ -237,10 +246,8 @@ function drawFilledCircle(x, y, radius, color) {
     }
 
     // Configure watercolor effect
-    brush.noStroke();
-    brush.fill(color, 180);
-    brush.bleed(0.15, "out");
-    brush.fillTexture(0.5, 0.4);
+    brush.fill(color, 255);
+    //brush.fillTexture(0.5, 0.4);
     brush.polygon(vertices);
 
     // OTHER BRUSH OPTIONS (tunable parameters and usage)
@@ -257,6 +264,16 @@ function drawFilledCircle(x, y, radius, color) {
     // VECTOR FIELDS (flow lines):
     // brush.field("waves") / brush.noField();
     // brush.refreshField(frameCount / 10);
+    //
+    // MARKER BRUSH PARAMETERS (built-in "marker" preset):
+    // - type: "marker" (preset type)
+    // - weight: base tip size (default ~2.5)
+    // - vibration: stroke jitter/spread (default ~0.08)
+    // - opacity: base alpha (default ~30)
+    // - spacing: distance between stamps (default ~0.4)
+    // - pressure: {curve: [a, b], min_max: [min, max]}
+    //   - curve controls the pressure response bell curve
+    //   - min_max sets pressure range (invert to flip pressure)
     //
     // CUSTOM BRUSH PARAMETERS TO TUNE:
     // - type: "standard" | "spray" | "marker" | "custom" | "image"
@@ -344,10 +361,8 @@ function drawPolygon(x, y, type, color, size, rotation) {
     let transformed = transformVertices(vertices, x, y, rotation);
 
     // Configure watercolor effect for polygons
-    brush.noStroke();
-    brush.fill(color, 150);
-    brush.bleed(0.12, "out");
-    brush.fillTexture(0.45, 0.35);
+    brush.fill(color, 255);
+    //brush.fillTexture(0.45, 0.35);
     brush.polygon(transformed);
   } else {
     push();
@@ -531,9 +546,8 @@ function drawCircleIntersection(circle1, circle2) {
     }
 
     brush.noStroke();
-    brush.fill([255, 255, 255], 220);
-    brush.bleed(0.1, "out");
-    brush.fillTexture(0.3, 0.5);
+    brush.fill([255, 255, 255], 255);
+    //brush.fillTexture(0.3, 0.5);
     brush.polygon(vertices);
   } else {
     fill(255); // White
