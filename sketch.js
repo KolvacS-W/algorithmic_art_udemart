@@ -100,8 +100,11 @@ function configureBrushDefaults() {
     "hatch_brush",
   ];
   let brushtype = random(brushes);
+  let bleedvalue = random(0, 0.5);
+  let bleeddirection = random("in", "out");
   brush.pick(brushtype);
-  console.log("selected brush", brushtype);
+  brush.bleed(bleedvalue, bleeddirection);
+  console.log("selected brush", brushtype, bleedvalue, bleeddirection);
 }
 
 function configureCircleBrush() {
@@ -191,52 +194,43 @@ function fillSegmentWithPolygons(
   goodSize,
   goodensity,
 ) {
-  // Fill a segment with a grid of polygons aligned with the lines
-  // goodSize: base distance between polygon centers
-  // goodensity: density multiplier (higher = denser grid, more polygons)
+  // Fill a segment with a grid of polygons aligned with the lines.
+  // goodSize: base distance between polygon centers.
+  // goodensity: density multiplier (higher = denser grid, more polygons).
+  // This builds a rotated grid, then only draws shapes whose centers land inside the segment polygon.
 
-  // Apply density to grid spacing (inverse relationship: higher density = smaller spacing)
-  let effectiveGridSize = goodSize / goodensity;
+  let effectiveGridSize = goodSize / goodensity; // Convert density into grid spacing.
 
-  // Find bounding box of the segment
-  let minX = min(segmentVertices.map((v) => v.x));
-  let maxX = max(segmentVertices.map((v) => v.x));
-  let minY = min(segmentVertices.map((v) => v.y));
-  let maxY = max(segmentVertices.map((v) => v.y));
+  let minX = min(segmentVertices.map((v) => v.x)); // Left bound of the segment polygon.
+  let maxX = max(segmentVertices.map((v) => v.x)); // Right bound of the segment polygon.
+  let minY = min(segmentVertices.map((v) => v.y)); // Top bound of the segment polygon.
+  let maxY = max(segmentVertices.map((v) => v.y)); // Bottom bound of the segment polygon.
 
-  // Calculate grid directions (aligned with the lines)
-  let dx1 = cos(gridAngle);
-  let dy1 = sin(gridAngle);
-  let dx2 = cos(gridAngle + HALF_PI);
-  let dy2 = sin(gridAngle + HALF_PI);
+  let dx1 = cos(gridAngle); // X direction for the grid's primary axis.
+  let dy1 = sin(gridAngle); // Y direction for the grid's primary axis.
+  let dx2 = cos(gridAngle + HALF_PI); // X direction for the grid's perpendicular axis.
+  let dy2 = sin(gridAngle + HALF_PI); // Y direction for the grid's perpendicular axis.
 
-  // Find center of segment for grid origin
-  let centerX = (minX + maxX) / 2;
-  let centerY = (minY + maxY) / 2;
+  let centerX = (minX + maxX) / 2; // Grid origin X at the segment's center.
+  let centerY = (minY + maxY) / 2; // Grid origin Y at the segment's center.
 
-  // Determine how many grid steps we need in each direction
-  let maxDist = max(maxX - minX, maxY - minY) * 1.5;
-  let steps = ceil(maxDist / effectiveGridSize);
+  let maxDist = max(maxX - minX, maxY - minY) * 1.5; // Bounding radius for grid coverage.
+  let steps = ceil(maxDist / effectiveGridSize); // Number of grid steps in each direction.
 
-  // Create rotated grid of polygons
   for (let i = -steps; i <= steps; i++) {
+    // Sweep along the primary grid axis.
     for (let j = -steps; j <= steps; j++) {
-      // Calculate position in rotated grid
-      let x =
+      // Sweep along the perpendicular grid axis.
+      let x = // Compute the grid point's X position in world space.
         centerX + i * effectiveGridSize * dx1 + j * effectiveGridSize * dx2;
-      let y =
+      let y = // Compute the grid point's Y position in world space.
         centerY + i * effectiveGridSize * dy1 + j * effectiveGridSize * dy2;
 
-      // Check if this point is inside the segment
       if (pointInPolygon(x, y, segmentVertices)) {
-        // Randomize polygon size within [goodSize*0.8, goodSize*1.2]
-        let randomSize = random(goodSize * 0.6, goodSize * 1.7) * 0.4;
-
-        // Randomly sample a color from the colorset
-        let randomColor = random(colorset);
-
-        // Draw polygon at this position with rotation and random properties
-        drawPolygon(x, y, polygonType, randomColor, randomSize, gridAngle);
+        // Only draw if point lies inside segment.
+        let randomSize = random(goodSize * 0.6, goodSize * 1.7) * 0.4; // Jittered size.
+        let randomColor = random(colorset); // Pick a random palette color.
+        drawPolygon(x, y, polygonType, randomColor, randomSize, gridAngle); // Draw polygon.
       }
     }
   }
@@ -296,44 +290,48 @@ function drawPolygon(x, y, type, color, size, rotation) {
 }
 
 function buildPolygonVertices(type, size) {
-  let vertices = [];
+  let vertices = []; // Output array of [x, y] pairs in local space.
 
   if (type === "triangle") {
-    // Equilateral triangle
-    let h = (size * sqrt(3)) / 2;
+    // Triangle branch.
+    let h = (size * sqrt(3)) / 2; // Height for an equilateral triangle.
     vertices = [
-      [0, -size * 0.6],
-      [-size * 0.5, h * 0.4],
-      [size * 0.5, h * 0.4],
+      // Triangle vertices around the origin.
+      [0, -size * 0.6], // Top vertex.
+      [-size * 0.5, h * 0.4], // Bottom-left vertex.
+      [size * 0.5, h * 0.4], // Bottom-right vertex.
     ];
   } else if (type === "square") {
-    // Square
-    let half = size * 0.5;
+    // Square branch.
+    let half = size * 0.5; // Half-size to center the square.
     vertices = [
-      [-half, -half],
-      [half, -half],
-      [half, half],
-      [-half, half],
+      // Square vertices in clockwise order.
+      [-half, -half], // Top-left.
+      [half, -half], // Top-right.
+      [half, half], // Bottom-right.
+      [-half, half], // Bottom-left.
     ];
   } else if (type === "hexagon") {
-    // Hexagon
+    // Hexagon branch.
     for (let i = 0; i < 6; i++) {
-      let angle = (TWO_PI / 6) * i - HALF_PI;
-      let px = cos(angle) * size * 0.5;
-      let py = sin(angle) * size * 0.5;
-      vertices.push([px, py]);
+      // Build six evenly spaced points.
+      let angle = (TWO_PI / 6) * i - HALF_PI; // Angle per vertex, rotated upright.
+      let px = cos(angle) * size * 0.5; // X position on hexagon radius.
+      let py = sin(angle) * size * 0.5; // Y position on hexagon radius.
+      vertices.push([px, py]); // Add each vertex.
     }
   } else if (type === "diamond") {
-    // Diamond (rhombus)
+    // Diamond branch.
     vertices = [
-      [0, -size * 0.5],
-      [size * 0.4, 0],
-      [0, size * 0.5],
-      [-size * 0.4, 0],
+      // Four vertices forming a rhombus.
+      [0, -size * 0.5], // Top.
+      [size * 0.4, 0], // Right.
+      [0, size * 0.5], // Bottom.
+      [-size * 0.4, 0], // Left.
     ];
   }
 
-  return vertices;
+  return vertices; // Return the local-space polygon outline.
 }
 
 function transformVertices(vertices, x, y, rotation) {
@@ -346,120 +344,113 @@ function transformVertices(vertices, x, y, rotation) {
 }
 
 function drawCircleIntersection(circle1, circle2) {
-  // Calculate distance between circle centers
-  let d = dist(circle1.x, circle1.y, circle2.x, circle2.y);
+  let d = dist(circle1.x, circle1.y, circle2.x, circle2.y); // Center-to-center distance.
 
-  // Check if circles intersect
   if (
-    d >= circle1.radius + circle2.radius ||
-    d <= abs(circle1.radius - circle2.radius)
+    // If no intersection exists, return early.
+    d >= circle1.radius + circle2.radius || // Circles are separate.
+    d <= abs(circle1.radius - circle2.radius) // One circle is inside the other.
   ) {
-    // No intersection or one circle is inside the other
-    return;
+    return; // Nothing to draw.
   }
 
-  // Calculate intersection points using circle-circle intersection formula
-  let a =
+  let a = // Distance from circle1 center to the line between intersection points.
     (circle1.radius * circle1.radius -
       circle2.radius * circle2.radius +
       d * d) /
     (2 * d);
-  let h = sqrt(circle1.radius * circle1.radius - a * a);
+  let h = sqrt(circle1.radius * circle1.radius - a * a); // Offset from that line to each intersection.
 
-  // Point on line between centers
-  let px = circle1.x + (a * (circle2.x - circle1.x)) / d;
-  let py = circle1.y + (a * (circle2.y - circle1.y)) / d;
+  let px = circle1.x + (a * (circle2.x - circle1.x)) / d; // Base point X on the center line.
+  let py = circle1.y + (a * (circle2.y - circle1.y)) / d; // Base point Y on the center line.
 
-  // The two intersection points
-  let ix1 = px + (h * (circle2.y - circle1.y)) / d;
-  let iy1 = py - (h * (circle2.x - circle1.x)) / d;
-  let ix2 = px - (h * (circle2.y - circle1.y)) / d;
-  let iy2 = py + (h * (circle2.x - circle1.x)) / d;
+  let ix1 = px + (h * (circle2.y - circle1.y)) / d; // Intersection 1 X.
+  let iy1 = py - (h * (circle2.x - circle1.x)) / d; // Intersection 1 Y.
+  let ix2 = px - (h * (circle2.y - circle1.y)) / d; // Intersection 2 X.
+  let iy2 = py + (h * (circle2.x - circle1.x)) / d; // Intersection 2 Y.
 
-  // Calculate angles from each circle center to intersection points
-  let angle1_1 = atan2(iy1 - circle1.y, ix1 - circle1.x);
-  let angle1_2 = atan2(iy2 - circle1.y, ix2 - circle1.x);
-  let angle2_1 = atan2(iy1 - circle2.y, ix1 - circle2.x);
-  let angle2_2 = atan2(iy2 - circle2.y, ix2 - circle2.x);
+  let angle1_1 = atan2(iy1 - circle1.y, ix1 - circle1.x); // Angle from circle1 to intersection 1.
+  let angle1_2 = atan2(iy2 - circle1.y, ix2 - circle1.x); // Angle from circle1 to intersection 2.
+  let angle2_1 = atan2(iy1 - circle2.y, ix1 - circle2.x); // Angle from circle2 to intersection 1.
+  let angle2_2 = atan2(iy2 - circle2.y, ix2 - circle2.x); // Angle from circle2 to intersection 2.
 
-  // Determine which arc direction to use (we want the smaller arc towards the other circle)
-  let mid1 = (angle1_1 + angle1_2) / 2;
-  let angleTo2 = atan2(circle2.y - circle1.y, circle2.x - circle1.x);
+  let mid1 = (angle1_1 + angle1_2) / 2; // Mid-angle of circle1's arc.
+  let angleTo2 = atan2(circle2.y - circle1.y, circle2.x - circle1.x); // Direction to circle2 center.
 
-  // Normalize angle difference
-  let diff = angleTo2 - mid1;
-  while (diff > PI) diff -= TWO_PI;
-  while (diff < -PI) diff += TWO_PI;
-
-  // If the midpoint of the arc is not towards circle2, swap the angles
-  if (abs(diff) > HALF_PI) {
-    let temp = angle1_1;
-    angle1_1 = angle1_2;
-    angle1_2 = temp;
-  }
-
-  // Same for circle2
-  let mid2 = (angle2_1 + angle2_2) / 2;
-  let angleTo1 = atan2(circle1.y - circle2.y, circle1.x - circle2.x);
-
-  diff = angleTo1 - mid2;
-  while (diff > PI) diff -= TWO_PI;
-  while (diff < -PI) diff += TWO_PI;
+  let diff = angleTo2 - mid1; // Difference between mid-arc and direction to other circle.
+  while (diff > PI) diff -= TWO_PI; // Normalize to [-PI, PI].
+  while (diff < -PI) diff += TWO_PI; // Normalize to [-PI, PI].
 
   if (abs(diff) > HALF_PI) {
-    let temp = angle2_1;
-    angle2_1 = angle2_2;
-    angle2_2 = temp;
+    // If arc midpoint points away, swap to use the other arc.
+    let temp = angle1_1; // Store angle1_1.
+    angle1_1 = angle1_2; // Swap angle1_1.
+    angle1_2 = temp; // Swap angle1_2.
   }
 
-  // Draw the lens-shaped intersection
-  let steps = 50;
+  let mid2 = (angle2_1 + angle2_2) / 2; // Mid-angle of circle2's arc.
+  let angleTo1 = atan2(circle1.y - circle2.y, circle1.x - circle2.x); // Direction to circle1 center.
+
+  diff = angleTo1 - mid2; // Difference between mid-arc and direction to other circle.
+  while (diff > PI) diff -= TWO_PI; // Normalize to [-PI, PI].
+  while (diff < -PI) diff += TWO_PI; // Normalize to [-PI, PI].
+
+  if (abs(diff) > HALF_PI) {
+    // If arc midpoint points away, swap to use the other arc.
+    let temp = angle2_1; // Store angle2_1.
+    angle2_1 = angle2_2; // Swap angle2_1.
+    angle2_2 = temp; // Swap angle2_2.
+  }
+
+  let steps = 50; // Number of samples used to approximate arcs.
 
   if (USE_BRUSH && typeof brush !== "undefined") {
-    let vertices = [];
+    // Brush rendering path.
+    let vertices = []; // Collected polygon vertices for the lens shape.
 
-    // Arc from circle1 using proper angle interpolation
     for (let i = 0; i <= steps; i++) {
-      let angle = lerpAngle(angle1_1, angle1_2, i / steps);
-      let xp = circle1.x + cos(angle) * circle1.radius;
-      let yp = circle1.y + sin(angle) * circle1.radius;
-      vertices.push([xp, yp]);
+      // Sample the first arc.
+      let angle = lerpAngle(angle1_1, angle1_2, i / steps); // Interpolate along arc.
+      let xp = circle1.x + cos(angle) * circle1.radius; // X on circle1.
+      let yp = circle1.y + sin(angle) * circle1.radius; // Y on circle1.
+      vertices.push([xp, yp]); // Store vertex.
     }
 
-    // Arc from circle2 (reverse direction)
     for (let i = 0; i <= steps; i++) {
-      let angle = lerpAngle(angle2_2, angle2_1, i / steps);
-      let xp = circle2.x + cos(angle) * circle2.radius;
-      let yp = circle2.y + sin(angle) * circle2.radius;
-      vertices.push([xp, yp]);
+      // Sample the second arc in reverse.
+      let angle = lerpAngle(angle2_2, angle2_1, i / steps); // Interpolate along arc.
+      let xp = circle2.x + cos(angle) * circle2.radius; // X on circle2.
+      let yp = circle2.y + sin(angle) * circle2.radius; // Y on circle2.
+      vertices.push([xp, yp]); // Store vertex.
     }
 
-    brush.noStroke();
-    brush.fill([255, 255, 255], 255);
-    //brush.fillTexture(0.3, 0.5);
-    brush.polygon(vertices);
+    brush.noStroke(); // Ensure no outline in brush mode.
+    brush.fill([255, 255, 255], 255); // Solid white fill for the lens.
+    //brush.fillTexture(0.3, 0.5); // Optional texture for watercolor effect.
+    brush.polygon(vertices); // Draw the lens as a filled polygon.
   } else {
-    fill(255); // White
-    noStroke();
-    beginShape();
+    // Standard p5 rendering path.
+    fill(255); // White fill.
+    noStroke(); // No outline.
+    beginShape(); // Start polygon path.
 
-    // Arc from circle1 using proper angle interpolation
     for (let i = 0; i <= steps; i++) {
-      let angle = lerpAngle(angle1_1, angle1_2, i / steps);
-      let x = circle1.x + cos(angle) * circle1.radius;
-      let y = circle1.y + sin(angle) * circle1.radius;
-      vertex(x, y);
+      // Sample the first arc.
+      let angle = lerpAngle(angle1_1, angle1_2, i / steps); // Interpolate along arc.
+      let x = circle1.x + cos(angle) * circle1.radius; // X on circle1.
+      let y = circle1.y + sin(angle) * circle1.radius; // Y on circle1.
+      vertex(x, y); // Add vertex.
     }
 
-    // Arc from circle2 (reverse direction)
     for (let i = 0; i <= steps; i++) {
-      let angle = lerpAngle(angle2_2, angle2_1, i / steps);
-      let x = circle2.x + cos(angle) * circle2.radius;
-      let y = circle2.y + sin(angle) * circle2.radius;
-      vertex(x, y);
+      // Sample the second arc in reverse.
+      let angle = lerpAngle(angle2_2, angle2_1, i / steps); // Interpolate along arc.
+      let x = circle2.x + cos(angle) * circle2.radius; // X on circle2.
+      let y = circle2.y + sin(angle) * circle2.radius; // Y on circle2.
+      vertex(x, y); // Add vertex.
     }
 
-    endShape(CLOSE);
+    endShape(CLOSE); // Close and render the polygon.
   }
 }
 
@@ -848,7 +839,7 @@ function draw() {
   // Draw pepcircle1 (red)
   let redColor = [220, 60, 60];
   if (USE_BRUSH && typeof brush !== "undefined") {
-    configureCircleBrush();
+    // configureCircleBrush();
   }
 
   drawOverlayCircle(
@@ -863,7 +854,7 @@ function draw() {
   // Draw pepcircle2 (blue)
   let blueColor = [72, 65, 209];
   if (USE_BRUSH && typeof brush !== "undefined") {
-    configureCircleBrush();
+    // configureCircleBrush();
   }
   drawFilledCircle(pepcircle2.x, pepcircle2.y, pepcircle2.radius, blueColor);
   drawOverlayCircle(
@@ -876,7 +867,7 @@ function draw() {
 
   // Draw intersection in white
   if (USE_BRUSH && typeof brush !== "undefined") {
-    configureCircleBrush();
+    // configureCircleBrush();
   }
   drawCircleIntersection(pepcircle1, pepcircle2);
   drawOverlayIntersection(pepcircle1, pepcircle2, overlayalpha);
