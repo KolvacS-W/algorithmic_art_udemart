@@ -99,7 +99,7 @@ function configureBrushDefaults() {
     // "charcoal",
     "hatch_brush",
   ];
-  let brushtype = "spray";
+  let brushtype = random(brushes);
   brush.pick(brushtype);
   console.log("selected brush", brushtype);
 }
