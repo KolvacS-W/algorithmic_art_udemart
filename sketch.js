@@ -204,13 +204,22 @@ function setup() {
 
   // Draw pepcircle1 (red)
   let redColor = [220, 60, 60];
+  if (USE_BRUSH && typeof brush !== "undefined") {
+    configureCircleBrush();
+  }
   drawFilledCircle(pepcircle1.x, pepcircle1.y, pepcircle1.radius, redColor);
 
   // Draw pepcircle2 (blue)
   let blueColor = [72, 65, 209];
+  if (USE_BRUSH && typeof brush !== "undefined") {
+    configureCircleBrush();
+  }
   drawFilledCircle(pepcircle2.x, pepcircle2.y, pepcircle2.radius, blueColor);
 
   // Draw intersection in white
+  if (USE_BRUSH && typeof brush !== "undefined") {
+    configureCircleBrush();
+  }
   drawCircleIntersection(pepcircle1, pepcircle2);
 
   // Draw the 2 perpendicular lines on top
@@ -226,7 +235,14 @@ function configureBrushDefaults() {
   // brush.pick("marker");
   // brush.strokeWeight(1.1);
   // brush.bleed(0.06, "in");
-  brush.pick("charcoal");
+  brush.pick("marker");
+}
+
+function configureCircleBrush() {
+  // Conspicuous solid fills for circles and intersection (no transparency)
+  // brush.pick("marker");
+  brush.strokeWeight(100);
+  // brush.noStroke();
 }
 
 // ============================================================
