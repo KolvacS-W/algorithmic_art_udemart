@@ -1,7 +1,70 @@
 // GLOBAL CONTROL: Set to true to use p5.brush watercolor effects, false for original rendering
 const USE_BRUSH = true;
+const overlayalpha = 50;
 
 function setup() {
+  // Diverse colorset from vending machine goods (snacks + beverages)
+  let vendingColorset = [
+    // Chip bag yellows & golds
+    [255, 215, 0], // Bright gold (Lay's Classic)
+    [255, 195, 50], // Warm yellow (snack bags)
+    [242, 169, 0], // Golden yellow
+
+    // Oranges & warm tones
+    [255, 140, 0], // Vibrant orange (Doritos, Crush)
+    [255, 99, 71], // Tomato red-orange (Doritos Nacho)
+    [255, 127, 80], // Coral (snack packaging)
+
+    // Reds & pinks
+    [220, 20, 60], // Crimson (Pepsi, Doritos)
+    [199, 21, 133], // Deep pink (candy/gum wrappers)
+    [178, 34, 34], // Fire brick (Dr Pepper, dark reds)
+    [240, 80, 80], // Salmon red (Pringles)
+
+    // Blues & purples
+    [0, 48, 135], // Deep Pepsi blue
+    [65, 105, 225], // Royal blue (Gatorade, packaging)
+    [138, 43, 226], // Blue violet (candy bars)
+    [100, 149, 237], // Cornflower blue (lighter packaging)
+    [147, 112, 219], // Medium purple (candy)
+
+    // Greens
+    [34, 139, 34], // Forest green (7Up bottles)
+    [50, 205, 50], // Lime green (Mountain Dew)
+    [173, 255, 47], // Yellow-green (bright Dew)
+    [60, 179, 113], // Sea green (mint packaging)
+    [144, 238, 144], // Light green (packaging accents)
+
+    // Browns & earth tones
+    [139, 69, 19], // Saddle brown (beer bottles)
+    [160, 82, 45], // Sienna (chocolate, coffee)
+    [205, 133, 63], // Peru brown (lighter brown bags)
+    [188, 143, 143], // Rosy brown (chocolate bars)
+
+    // Metallic & silver tones
+    [192, 192, 192], // Silver (beverage packaging)
+    [169, 169, 169], // Dark gray (metallic chips)
+    [211, 211, 211], // Light gray (silver accents)
+
+    // Additional vibrant tones
+    [255, 20, 147], // Deep pink (bright candy)
+    [255, 165, 0], // Orange (Fanta, cheese puffs)
+    [70, 130, 180], // Steel blue (cans)
+    [147, 197, 114], // Muted sage green
+    [230, 190, 255], // Lavender (light purple snacks)
+  ];
+
+  // Define polygon types for each segment
+  let polygonTypes = ["triangle", "square", "hexagon", "diamond"];
+
+  // Define different goodsize and goodensity for each segment
+  let goodsizes = [
+    random(30, 90), // Segment 1
+    random(20, 80), // Segment 2
+    random(50, 90), // Segment 3
+    random(35, 85), // Segment 4
+  ];
+
   // Create canvas - WEBGL mode required for p5.brush
   if (USE_BRUSH && typeof brush !== "undefined") {
     createCanvas(600, 600, WEBGL);
@@ -77,68 +140,6 @@ function setup() {
     { x: 0, y: height, name: "bottom-left" },
   ];
 
-  // Diverse colorset from vending machine goods (snacks + beverages)
-  let vendingColorset = [
-    // Chip bag yellows & golds
-    [255, 215, 0], // Bright gold (Lay's Classic)
-    [255, 195, 50], // Warm yellow (snack bags)
-    [242, 169, 0], // Golden yellow
-
-    // Oranges & warm tones
-    [255, 140, 0], // Vibrant orange (Doritos, Crush)
-    [255, 99, 71], // Tomato red-orange (Doritos Nacho)
-    [255, 127, 80], // Coral (snack packaging)
-
-    // Reds & pinks
-    [220, 20, 60], // Crimson (Pepsi, Doritos)
-    [199, 21, 133], // Deep pink (candy/gum wrappers)
-    [178, 34, 34], // Fire brick (Dr Pepper, dark reds)
-    [240, 80, 80], // Salmon red (Pringles)
-
-    // Blues & purples
-    [0, 48, 135], // Deep Pepsi blue
-    [65, 105, 225], // Royal blue (Gatorade, packaging)
-    [138, 43, 226], // Blue violet (candy bars)
-    [100, 149, 237], // Cornflower blue (lighter packaging)
-    [147, 112, 219], // Medium purple (candy)
-
-    // Greens
-    [34, 139, 34], // Forest green (7Up bottles)
-    [50, 205, 50], // Lime green (Mountain Dew)
-    [173, 255, 47], // Yellow-green (bright Dew)
-    [60, 179, 113], // Sea green (mint packaging)
-    [144, 238, 144], // Light green (packaging accents)
-
-    // Browns & earth tones
-    [139, 69, 19], // Saddle brown (beer bottles)
-    [160, 82, 45], // Sienna (chocolate, coffee)
-    [205, 133, 63], // Peru brown (lighter brown bags)
-    [188, 143, 143], // Rosy brown (chocolate bars)
-
-    // Metallic & silver tones
-    [192, 192, 192], // Silver (beverage packaging)
-    [169, 169, 169], // Dark gray (metallic chips)
-    [211, 211, 211], // Light gray (silver accents)
-
-    // Additional vibrant tones
-    [255, 20, 147], // Deep pink (bright candy)
-    [255, 165, 0], // Orange (Fanta, cheese puffs)
-    [70, 130, 180], // Steel blue (cans)
-    [147, 197, 114], // Muted sage green
-    [230, 190, 255], // Lavender (light purple snacks)
-  ];
-
-  // Define polygon types for each segment
-  let polygonTypes = ["triangle", "square", "hexagon", "diamond"];
-
-  // Define different goodsize and goodensity for each segment
-  let goodsizes = [
-    random(30, 90), // Segment 1
-    random(20, 80), // Segment 2
-    random(50, 90), // Segment 3
-    random(35, 85), // Segment 4
-  ];
-
   let densityreduce = 0.4;
   let goodensities = [
     random(1.7, 2.3) - densityreduce, // Segment 1 density multiplier
@@ -207,6 +208,14 @@ function setup() {
   if (USE_BRUSH && typeof brush !== "undefined") {
     configureCircleBrush();
   }
+
+  drawOverlayCircle(
+    pepcircle1.x,
+    pepcircle1.y,
+    pepcircle1.radius,
+    redColor,
+    overlayalpha,
+  );
   drawFilledCircle(pepcircle1.x, pepcircle1.y, pepcircle1.radius, redColor);
 
   // Draw pepcircle2 (blue)
@@ -215,12 +224,20 @@ function setup() {
     configureCircleBrush();
   }
   drawFilledCircle(pepcircle2.x, pepcircle2.y, pepcircle2.radius, blueColor);
+  drawOverlayCircle(
+    pepcircle2.x,
+    pepcircle2.y,
+    pepcircle2.radius,
+    blueColor,
+    overlayalpha,
+  );
 
   // Draw intersection in white
   if (USE_BRUSH && typeof brush !== "undefined") {
     configureCircleBrush();
   }
   drawCircleIntersection(pepcircle1, pepcircle2);
+  drawOverlayIntersection(pepcircle1, pepcircle2, overlayalpha);
 
   // Draw the 2 perpendicular lines on top
   // stroke(60, 90, 180);
@@ -235,14 +252,36 @@ function configureBrushDefaults() {
   // brush.pick("marker");
   // brush.strokeWeight(1.1);
   // brush.bleed(0.06, "in");
-  brush.pick("marker");
+  let brushes = [
+    "2B",
+    // "HB",
+    // "2H",
+    "cpencil",
+    "pen",
+    "rotring",
+    "spray",
+    "marker",
+    "marker2",
+    // "charcoal",
+    "hatch_brush",
+  ];
+  let brushtype = "spray";
+  brush.pick(brushtype);
+  console.log("selected brush", brushtype);
 }
 
 function configureCircleBrush() {
   // Conspicuous solid fills for circles and intersection (no transparency)
   // brush.pick("marker");
-  brush.strokeWeight(100);
+  // brush.strokeWeight(100);
   // brush.noStroke();
+}
+
+function drawOverlayCircle(x, y, radius, color, alpha) {
+  // Normal p5 fill overlay, independent from brush
+  fill(color[0], color[1], color[2], alpha);
+  noStroke();
+  circle(x, y, radius * 2);
 }
 
 // ============================================================
@@ -588,6 +627,81 @@ function drawCircleIntersection(circle1, circle2) {
 
     endShape(CLOSE);
   }
+}
+
+function drawOverlayIntersection(circle1, circle2, alpha) {
+  // Normal p5 fill overlay for the lens shape
+  let d = dist(circle1.x, circle1.y, circle2.x, circle2.y);
+  if (
+    d >= circle1.radius + circle2.radius ||
+    d <= abs(circle1.radius - circle2.radius)
+  ) {
+    return;
+  }
+
+  let a =
+    (circle1.radius * circle1.radius -
+      circle2.radius * circle2.radius +
+      d * d) /
+    (2 * d);
+  let h = sqrt(circle1.radius * circle1.radius - a * a);
+
+  let px = circle1.x + (a * (circle2.x - circle1.x)) / d;
+  let py = circle1.y + (a * (circle2.y - circle1.y)) / d;
+
+  let ix1 = px + (h * (circle2.y - circle1.y)) / d;
+  let iy1 = py - (h * (circle2.x - circle1.x)) / d;
+  let ix2 = px - (h * (circle2.y - circle1.y)) / d;
+  let iy2 = py + (h * (circle2.x - circle1.x)) / d;
+
+  let angle1_1 = atan2(iy1 - circle1.y, ix1 - circle1.x);
+  let angle1_2 = atan2(iy2 - circle1.y, ix2 - circle1.x);
+  let angle2_1 = atan2(iy1 - circle2.y, ix1 - circle2.x);
+  let angle2_2 = atan2(iy2 - circle2.y, ix2 - circle2.x);
+
+  let mid1 = (angle1_1 + angle1_2) / 2;
+  let angleTo2 = atan2(circle2.y - circle1.y, circle2.x - circle1.x);
+
+  let diff = angleTo2 - mid1;
+  while (diff > PI) diff -= TWO_PI;
+  while (diff < -PI) diff += TWO_PI;
+
+  if (abs(diff) > HALF_PI) {
+    let temp = angle1_1;
+    angle1_1 = angle1_2;
+    angle1_2 = temp;
+  }
+
+  let mid2 = (angle2_1 + angle2_2) / 2;
+  let angleTo1 = atan2(circle1.y - circle2.y, circle1.x - circle2.x);
+
+  diff = angleTo1 - mid2;
+  while (diff > PI) diff -= TWO_PI;
+  while (diff < -PI) diff += TWO_PI;
+
+  if (abs(diff) > HALF_PI) {
+    let temp = angle2_1;
+    angle2_1 = angle2_2;
+    angle2_2 = temp;
+  }
+
+  let steps = 50;
+  fill(255, 255, 255, alpha);
+  noStroke();
+  beginShape();
+  for (let i = 0; i <= steps; i++) {
+    let angle = lerpAngle(angle1_1, angle1_2, i / steps);
+    let x = circle1.x + cos(angle) * circle1.radius;
+    let y = circle1.y + sin(angle) * circle1.radius;
+    vertex(x, y);
+  }
+  for (let i = 0; i <= steps; i++) {
+    let angle = lerpAngle(angle2_2, angle2_1, i / steps);
+    let x = circle2.x + cos(angle) * circle2.radius;
+    let y = circle2.y + sin(angle) * circle2.radius;
+    vertex(x, y);
+  }
+  endShape(CLOSE);
 }
 
 function lerpAngle(a1, a2, t) {
