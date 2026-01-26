@@ -1,70 +1,64 @@
 // GLOBAL CONTROL: Set to true to use p5.brush watercolor effects, false for original rendering
 const USE_BRUSH = true;
 const overlayalpha = 50;
+// Diverse colorset from vending machine goods (snacks + beverages)
+let vendingColorset = [
+  // Chip bag yellows & golds
+  [255, 215, 0], // Bright gold (Lay's Classic)
+  [255, 195, 50], // Warm yellow (snack bags)
+  [242, 169, 0], // Golden yellow
+
+  // Oranges & warm tones
+  [255, 140, 0], // Vibrant orange (Doritos, Crush)
+  [255, 99, 71], // Tomato red-orange (Doritos Nacho)
+  [255, 127, 80], // Coral (snack packaging)
+
+  // Reds & pinks
+  [220, 20, 60], // Crimson (Pepsi, Doritos)
+  [199, 21, 133], // Deep pink (candy/gum wrappers)
+  [178, 34, 34], // Fire brick (Dr Pepper, dark reds)
+  [240, 80, 80], // Salmon red (Pringles)
+
+  // Blues & purples
+  [0, 48, 135], // Deep Pepsi blue
+  [65, 105, 225], // Royal blue (Gatorade, packaging)
+  [138, 43, 226], // Blue violet (candy bars)
+  [100, 149, 237], // Cornflower blue (lighter packaging)
+  [147, 112, 219], // Medium purple (candy)
+
+  // Greens
+  [34, 139, 34], // Forest green (7Up bottles)
+  [50, 205, 50], // Lime green (Mountain Dew)
+  [173, 255, 47], // Yellow-green (bright Dew)
+  [60, 179, 113], // Sea green (mint packaging)
+  [144, 238, 144], // Light green (packaging accents)
+
+  // Browns & earth tones
+  [139, 69, 19], // Saddle brown (beer bottles)
+  [160, 82, 45], // Sienna (chocolate, coffee)
+  [205, 133, 63], // Peru brown (lighter brown bags)
+  [188, 143, 143], // Rosy brown (chocolate bars)
+
+  // Metallic & silver tones
+  [192, 192, 192], // Silver (beverage packaging)
+  [169, 169, 169], // Dark gray (metallic chips)
+  [211, 211, 211], // Light gray (silver accents)
+
+  // Additional vibrant tones
+  [255, 20, 147], // Deep pink (bright candy)
+  [255, 165, 0], // Orange (Fanta, cheese puffs)
+  [70, 130, 180], // Steel blue (cans)
+  [147, 197, 114], // Muted sage green
+  [230, 190, 255], // Lavender (light purple snacks)
+];
+
+// Define polygon types for each segment
+let polygonTypes = ["triangle", "square", "hexagon", "diamond"];
+
+// Define different goodsize and goodensity for each segment
+let goodsizes = [];
 
 function setup() {
-  // Diverse colorset from vending machine goods (snacks + beverages)
-  let vendingColorset = [
-    // Chip bag yellows & golds
-    [255, 215, 0], // Bright gold (Lay's Classic)
-    [255, 195, 50], // Warm yellow (snack bags)
-    [242, 169, 0], // Golden yellow
-
-    // Oranges & warm tones
-    [255, 140, 0], // Vibrant orange (Doritos, Crush)
-    [255, 99, 71], // Tomato red-orange (Doritos Nacho)
-    [255, 127, 80], // Coral (snack packaging)
-
-    // Reds & pinks
-    [220, 20, 60], // Crimson (Pepsi, Doritos)
-    [199, 21, 133], // Deep pink (candy/gum wrappers)
-    [178, 34, 34], // Fire brick (Dr Pepper, dark reds)
-    [240, 80, 80], // Salmon red (Pringles)
-
-    // Blues & purples
-    [0, 48, 135], // Deep Pepsi blue
-    [65, 105, 225], // Royal blue (Gatorade, packaging)
-    [138, 43, 226], // Blue violet (candy bars)
-    [100, 149, 237], // Cornflower blue (lighter packaging)
-    [147, 112, 219], // Medium purple (candy)
-
-    // Greens
-    [34, 139, 34], // Forest green (7Up bottles)
-    [50, 205, 50], // Lime green (Mountain Dew)
-    [173, 255, 47], // Yellow-green (bright Dew)
-    [60, 179, 113], // Sea green (mint packaging)
-    [144, 238, 144], // Light green (packaging accents)
-
-    // Browns & earth tones
-    [139, 69, 19], // Saddle brown (beer bottles)
-    [160, 82, 45], // Sienna (chocolate, coffee)
-    [205, 133, 63], // Peru brown (lighter brown bags)
-    [188, 143, 143], // Rosy brown (chocolate bars)
-
-    // Metallic & silver tones
-    [192, 192, 192], // Silver (beverage packaging)
-    [169, 169, 169], // Dark gray (metallic chips)
-    [211, 211, 211], // Light gray (silver accents)
-
-    // Additional vibrant tones
-    [255, 20, 147], // Deep pink (bright candy)
-    [255, 165, 0], // Orange (Fanta, cheese puffs)
-    [70, 130, 180], // Steel blue (cans)
-    [147, 197, 114], // Muted sage green
-    [230, 190, 255], // Lavender (light purple snacks)
-  ];
-
-  // Define polygon types for each segment
-  let polygonTypes = ["triangle", "square", "hexagon", "diamond"];
-
-  // Define different goodsize and goodensity for each segment
-  let goodsizes = [
-    random(30, 90), // Segment 1
-    random(20, 80), // Segment 2
-    random(50, 90), // Segment 3
-    random(35, 85), // Segment 4
-  ];
-
   // Create canvas - WEBGL mode required for p5.brush
   if (USE_BRUSH && typeof brush !== "undefined") {
     createCanvas(600, 600, WEBGL);
@@ -79,172 +73,12 @@ function setup() {
     background(40); // Blackchalk color
   }
 
-  // Step 1: Pick first line connecting two opposite edges
-  let line1 = {};
-  let line1Vertical = random() < 0.5;
-
-  if (line1Vertical) {
-    // Line 1 connects top-bottom
-    line1.x1 = random(100, width - 100);
-    line1.y1 = 0;
-    line1.x2 = random(100, width - 100);
-    line1.y2 = height;
-  } else {
-    // Line 1 connects left-right
-    line1.x1 = 0;
-    line1.y1 = random(100, height - 100);
-    line1.x2 = width;
-    line1.y2 = random(100, height - 100);
-  }
-
-  // Step 2: Find a perpendicular line that connects the other two opposite edges
-  let line2 = {};
-  let angle1 = atan2(line1.y2 - line1.y1, line1.x2 - line1.x1);
-  let angle2 = angle1 + HALF_PI;
-  let maxAttempts = 100;
-
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    // Pick a random point on line1
-    let t = random(0.2, 0.8); // Stay away from edges
-    let px = line1.x1 + t * (line1.x2 - line1.x1);
-    let py = line1.y1 + t * (line1.y2 - line1.y1);
-
-    // Find where perpendicular line hits canvas edges
-    line2 = findEdgePoints(px, py, angle2);
-
-    // Check if line2 connects the other two opposite edges
-    if (connectsOppositeEdges(line2) && !connectsSameEdges(line1, line2)) {
-      break;
-    }
-  }
-
-  // Use the intersection point as center (the "heart")
-  let intersection = findLineIntersection(line1, line2);
-  let cx = intersection.x;
-  let cy = intersection.y;
-  let heart = { x: cx, y: cy };
-
-  // Collect all 4 edge points where lines hit the canvas
-  let edgePoints = [
-    { x: line1.x1, y: line1.y1 },
-    { x: line1.x2, y: line1.y2 },
-    { x: line2.x1, y: line2.y1 },
-    { x: line2.x2, y: line2.y2 },
+  goodsizes = [
+    random(30, 90), // Segment 1
+    random(20, 80), // Segment 2
+    random(50, 90), // Segment 3
+    random(35, 85), // Segment 4
   ];
-
-  // Define the 4 corners
-  let corners = [
-    { x: 0, y: 0, name: "top-left" },
-    { x: width, y: 0, name: "top-right" },
-    { x: width, y: height, name: "bottom-right" },
-    { x: 0, y: height, name: "bottom-left" },
-  ];
-
-  let densityreduce = 0.4;
-  let goodensities = [
-    random(1.7, 2.3) - densityreduce, // Segment 1 density multiplier
-    random(1.8, 2.2) - densityreduce, // Segment 2 density multiplier
-    random(1.6, 2.4) - densityreduce, // Segment 3 density multiplier
-    random(1.9, 2.1) - densityreduce, // Segment 4 density multiplier
-  ];
-
-  // For each corner, find its 2 closest edge points and draw the segment
-  for (let i = 0; i < 4; i++) {
-    // Find the 2 edge points closest to this corner
-    let closestPoints = findClosestEdgePoints(corners[i], edgePoints);
-
-    // Only draw if we have exactly 2 edge points for this corner
-    if (closestPoints.length === 2) {
-      // Define the segment boundary
-      let segmentVertices = [
-        corners[i],
-        closestPoints[0],
-        { x: cx, y: cy },
-        closestPoints[1],
-      ];
-
-      // Fill segment with grid of polygons aligned with the lines
-      fillSegmentWithPolygons(
-        segmentVertices,
-        polygonTypes[i],
-        vendingColorset,
-        angle1,
-        goodsizes[i],
-        goodensities[i],
-      );
-    }
-  }
-
-  // Draw pepcircle1 around the heart
-  // Circle center is randomly placed within a distance range from heart
-  let minDistFromHeart = 20;
-  let maxDistFromHeart = 80;
-  let distFromHeart = random(minDistFromHeart, maxDistFromHeart);
-  let angleFromHeart = random(TWO_PI);
-
-  let pepcircle1 = {
-    x: heart.x + cos(angleFromHeart) * distFromHeart,
-    y: heart.y + sin(angleFromHeart) * distFromHeart,
-    radius: 0,
-  };
-
-  // Radius must be larger than distance from circle center to heart
-  let minRadius = distFromHeart;
-  pepcircle1.radius = random(minRadius + 10, minRadius + 60);
-
-  // Create pepcircle2
-  // Sample a point at distance [pepcircle1.radius, pepcircle1.radius * 1.5] from pepcircle1
-  let distFromPepcircle1 = random(pepcircle1.radius, pepcircle1.radius * 1.5);
-  let angleFromPepcircle1 = random(TWO_PI);
-
-  let pepcircle2 = {
-    x: pepcircle1.x + cos(angleFromPepcircle1) * distFromPepcircle1,
-    y: pepcircle1.y + sin(angleFromPepcircle1) * distFromPepcircle1,
-    radius: random(pepcircle1.radius * 0.5, pepcircle1.radius),
-  };
-
-  // Draw pepcircle1 (red)
-  let redColor = [220, 60, 60];
-  if (USE_BRUSH && typeof brush !== "undefined") {
-    configureCircleBrush();
-  }
-
-  drawOverlayCircle(
-    pepcircle1.x,
-    pepcircle1.y,
-    pepcircle1.radius,
-    redColor,
-    overlayalpha,
-  );
-  drawFilledCircle(pepcircle1.x, pepcircle1.y, pepcircle1.radius, redColor);
-
-  // Draw pepcircle2 (blue)
-  let blueColor = [72, 65, 209];
-  if (USE_BRUSH && typeof brush !== "undefined") {
-    configureCircleBrush();
-  }
-  drawFilledCircle(pepcircle2.x, pepcircle2.y, pepcircle2.radius, blueColor);
-  drawOverlayCircle(
-    pepcircle2.x,
-    pepcircle2.y,
-    pepcircle2.radius,
-    blueColor,
-    overlayalpha,
-  );
-
-  // Draw intersection in white
-  if (USE_BRUSH && typeof brush !== "undefined") {
-    configureCircleBrush();
-  }
-  drawCircleIntersection(pepcircle1, pepcircle2);
-  drawOverlayIntersection(pepcircle1, pepcircle2, overlayalpha);
-
-  // Draw the 2 perpendicular lines on top
-  // stroke(60, 90, 180);
-  noStroke();
-  strokeWeight(4);
-  line(line1.x1, line1.y1, line1.x2, line1.y2);
-  line(line2.x1, line2.y1, line2.x2, line2.y2);
 }
 
 function configureBrushDefaults() {
@@ -885,6 +719,171 @@ function findEdgePoints(cx, cy, angle) {
 }
 
 function draw() {
-  // No animation needed
+  // Step 1: Pick first line connecting two opposite edges
+  let line1 = {};
+  let line1Vertical = random() < 0.5;
+
+  if (line1Vertical) {
+    // Line 1 connects top-bottom
+    line1.x1 = random(100, width - 100);
+    line1.y1 = 0;
+    line1.x2 = random(100, width - 100);
+    line1.y2 = height;
+  } else {
+    // Line 1 connects left-right
+    line1.x1 = 0;
+    line1.y1 = random(100, height - 100);
+    line1.x2 = width;
+    line1.y2 = random(100, height - 100);
+  }
+
+  // Step 2: Find a perpendicular line that connects the other two opposite edges
+  let line2 = {};
+  let angle1 = atan2(line1.y2 - line1.y1, line1.x2 - line1.x1);
+  let angle2 = angle1 + HALF_PI;
+  let maxAttempts = 100;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    // Pick a random point on line1
+    let t = random(0.2, 0.8); // Stay away from edges
+    let px = line1.x1 + t * (line1.x2 - line1.x1);
+    let py = line1.y1 + t * (line1.y2 - line1.y1);
+
+    // Find where perpendicular line hits canvas edges
+    line2 = findEdgePoints(px, py, angle2);
+
+    // Check if line2 connects the other two opposite edges
+    if (connectsOppositeEdges(line2) && !connectsSameEdges(line1, line2)) {
+      break;
+    }
+  }
+
+  // Use the intersection point as center (the "heart")
+  let intersection = findLineIntersection(line1, line2);
+  let cx = intersection.x;
+  let cy = intersection.y;
+  let heart = { x: cx, y: cy };
+
+  // Collect all 4 edge points where lines hit the canvas
+  let edgePoints = [
+    { x: line1.x1, y: line1.y1 },
+    { x: line1.x2, y: line1.y2 },
+    { x: line2.x1, y: line2.y1 },
+    { x: line2.x2, y: line2.y2 },
+  ];
+
+  // Define the 4 corners
+  let corners = [
+    { x: 0, y: 0, name: "top-left" },
+    { x: width, y: 0, name: "top-right" },
+    { x: width, y: height, name: "bottom-right" },
+    { x: 0, y: height, name: "bottom-left" },
+  ];
+
+  let densityreduce = 0.4;
+  let goodensities = [
+    random(1.7, 2.3) - densityreduce, // Segment 1 density multiplier
+    random(1.8, 2.2) - densityreduce, // Segment 2 density multiplier
+    random(1.6, 2.4) - densityreduce, // Segment 3 density multiplier
+    random(1.9, 2.1) - densityreduce, // Segment 4 density multiplier
+  ];
+  // step 3: draw polygon grids
+  // For each corner, find its 2 closest edge points and draw the segment
+  for (let i = 0; i < 4; i++) {
+    // Find the 2 edge points closest to this corner
+    let closestPoints = findClosestEdgePoints(corners[i], edgePoints);
+
+    // Only draw if we have exactly 2 edge points for this corner
+    if (closestPoints.length === 2) {
+      // Define the segment boundary
+      let segmentVertices = [
+        corners[i],
+        closestPoints[0],
+        { x: cx, y: cy },
+        closestPoints[1],
+      ];
+
+      // Fill segment with grid of polygons aligned with the lines
+      fillSegmentWithPolygons(
+        segmentVertices,
+        polygonTypes[i],
+        vendingColorset,
+        angle1,
+        goodsizes[i],
+        goodensities[i],
+      );
+    }
+  }
+
+  // step 4: Draw pepcircles around the heart
+  // Circle center is randomly placed within a distance range from heart
+  let minDistFromHeart = 20;
+  let maxDistFromHeart = 80;
+  let distFromHeart = random(minDistFromHeart, maxDistFromHeart);
+  let angleFromHeart = random(TWO_PI);
+
+  let pepcircle1 = {
+    x: heart.x + cos(angleFromHeart) * distFromHeart,
+    y: heart.y + sin(angleFromHeart) * distFromHeart,
+    radius: 0,
+  };
+
+  // Radius must be larger than distance from circle center to heart
+  let minRadius = distFromHeart;
+  pepcircle1.radius = random(minRadius + 10, minRadius + 60);
+
+  // Create pepcircle2
+  // Sample a point at distance [pepcircle1.radius, pepcircle1.radius * 1.5] from pepcircle1
+  let distFromPepcircle1 = random(pepcircle1.radius, pepcircle1.radius * 1.5);
+  let angleFromPepcircle1 = random(TWO_PI);
+
+  let pepcircle2 = {
+    x: pepcircle1.x + cos(angleFromPepcircle1) * distFromPepcircle1,
+    y: pepcircle1.y + sin(angleFromPepcircle1) * distFromPepcircle1,
+    radius: random(pepcircle1.radius * 0.5, pepcircle1.radius),
+  };
+
+  // Draw pepcircle1 (red)
+  let redColor = [220, 60, 60];
+  if (USE_BRUSH && typeof brush !== "undefined") {
+    configureCircleBrush();
+  }
+
+  drawOverlayCircle(
+    pepcircle1.x,
+    pepcircle1.y,
+    pepcircle1.radius,
+    redColor,
+    overlayalpha,
+  );
+  drawFilledCircle(pepcircle1.x, pepcircle1.y, pepcircle1.radius, redColor);
+
+  // Draw pepcircle2 (blue)
+  let blueColor = [72, 65, 209];
+  if (USE_BRUSH && typeof brush !== "undefined") {
+    configureCircleBrush();
+  }
+  drawFilledCircle(pepcircle2.x, pepcircle2.y, pepcircle2.radius, blueColor);
+  drawOverlayCircle(
+    pepcircle2.x,
+    pepcircle2.y,
+    pepcircle2.radius,
+    blueColor,
+    overlayalpha,
+  );
+
+  // Draw intersection in white
+  if (USE_BRUSH && typeof brush !== "undefined") {
+    configureCircleBrush();
+  }
+  drawCircleIntersection(pepcircle1, pepcircle2);
+  drawOverlayIntersection(pepcircle1, pepcircle2, overlayalpha);
+
+  // Draw the 2 perpendicular lines on top
+  // stroke(60, 90, 180);
+  noStroke();
+  strokeWeight(4);
+  line(line1.x1, line1.y1, line1.x2, line1.y2);
+  line(line2.x1, line2.y1, line2.x2, line2.y2);
   noLoop();
 }
