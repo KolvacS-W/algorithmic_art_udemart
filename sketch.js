@@ -100,19 +100,19 @@ function configureBrushDefaults() {
     "hatch_brush",
   ];
   let brushtype = random(brushes);
-  let bleedvalue = random(0, 0.5);
-  let bleeddirection = random("in", "out");
+  let bleedvalue = random(0, 0.3);
+  let bleeddirection = random(["in", "out"]);
   brush.pick(brushtype);
   brush.bleed(bleedvalue, bleeddirection);
   console.log("selected brush", brushtype, bleedvalue, bleeddirection);
 }
 
-function configureCircleBrush() {
-  // Conspicuous solid fills for circles and intersection (no transparency)
-  // brush.pick("marker");
-  // brush.strokeWeight(100);
-  // brush.noStroke();
-}
+// function configureCircleBrush() {
+//   // Conspicuous solid fills for circles and intersection (no transparency)
+//   // brush.pick("marker");
+//   // brush.strokeWeight(100);
+//   // brush.noStroke();
+// }
 
 function drawOverlayCircle(x, y, radius, color, alpha) {
   // Normal p5 fill overlay, independent from brush
