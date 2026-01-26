@@ -102,8 +102,8 @@ function configureBrushDefaults() {
   let brushtype = random(brushes);
   let bleedvalue = random(0, 0.3);
   let bleeddirection = random(["in", "out"]);
-  brush.pick(brushtype);
-  brush.bleed(bleedvalue, bleeddirection);
+  brush.pick("marker");
+  // brush.bleed(0.2, "in");
   console.log("selected brush", brushtype, bleedvalue, bleeddirection);
 }
 
@@ -710,8 +710,11 @@ function findEdgePoints(cx, cy, angle) {
 }
 
 function draw() {
-  // Shift origin to top-left for consistency with 2D mode
-  translate(-width / 2, -height / 2);
+  if (USE_BRUSH && typeof brush !== "undefined") {
+    // Shift origin to top-left for consistency with 2D mode
+    translate(-width / 2, -height / 2);
+  }
+
   // Step 1: Pick first line connecting two opposite edges
   let line1 = {};
   let line1Vertical = random() < 0.5;
