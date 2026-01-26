@@ -64,7 +64,7 @@ function setup() {
     createCanvas(600, 600, WEBGL);
     background(40); // Blackchalk color
     // Shift origin to top-left for consistency with 2D mode
-    translate(-width / 2, -height / 2);
+    // translate(-width / 2, -height / 2);
     // Initialize p5.brush
     brush.load();
     configureBrushDefaults();
@@ -719,6 +719,8 @@ function findEdgePoints(cx, cy, angle) {
 }
 
 function draw() {
+  // Shift origin to top-left for consistency with 2D mode
+  translate(-width / 2, -height / 2);
   // Step 1: Pick first line connecting two opposite edges
   let line1 = {};
   let line1Vertical = random() < 0.5;
